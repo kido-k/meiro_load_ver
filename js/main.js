@@ -1,7 +1,7 @@
 
 
 const CLICK_INTERVAL = 100;
-const CANVAS_SIZE = 100;
+const CANVAS_SIZE = 50;
 const THRESHHOLD = 100;
 const PLAYSER_SIZE_HOSEI = 1;
 
@@ -15,13 +15,18 @@ var end = [];
 var player_size = 0;
 
 $(function () {
+    var players = [];
     var finish = false;
     var auto = false;
     var display = true;
     var start_flg = false;
     var end_flg = false;
+    var rows = [];
+    var clms = [];
 
     dragFile();
+
+    console.log('gamestart');
 
     $('#start').on('click', function () {
         setInitial();
@@ -47,7 +52,7 @@ $(function () {
         $('#msg').html('　');
         player = movePlayer_btn(map, player, btn);
         displayLoad(CANVAS_SIZE, map, player);
-        judgeGoal(player, CANVAS_SIZE, map);
+        judgeGoal(player);
     });
 
     $('html').keyup(function (e) {
@@ -56,7 +61,7 @@ $(function () {
             $('#msg').html('　');
             player = movePlayer_key(map, player, key);
             displayLoad(CANVAS_SIZE, map, player);
-            judgeGoal(player, CANVAS_SIZE, map);
+            judgeGoal(player);
         }
     });
 
@@ -78,21 +83,96 @@ $(function () {
                 $('#msg').html('ゲームを開始！！');
                 // player = { row: 7, clm: 1 };
                 player = setPlayer();
+                players.push(player);
+                goal = setGoal();
             }
         }
         displayLoad(CANVAS_SIZE, map, player);
     });
 
+    $('#step').on('click', function () {
+        if (!finish) {
+            var new_players = createAvatar();
+            for (var i = 0; i < new_players.length; i++) {
+                var new_player = new_players[i];
+                displayLoad_bunshin(CANVAS_SIZE, map, new_players);
+                result = judgeGoal(new_player);
+                finish = result.finish;
+                goal_player = result.player;
+            }
+        }
+    });
+
+    $('#auto').on('click', function () {
+        auto = true;
+        if (auto) {
+            searchGoal();
+        }
+    });
+
+    function searchGoal() {
+        if (!finish) {
+            var new_players = createAvatar();
+            for (var i = 0; i < new_players.length; i++) {
+                var new_player = new_players[i];
+                displayLoad(size, map, new_players);
+                // result = judgeGoal(new_player, size);
+                result = judgeGoal(new_player, size, player_name, rows, clms);
+                finish = result.finish;
+                goal_player = result.player;
+            }
+        }
+        if (auto) {
+            setTimeout(function () { searchGoal() }, CLICK_INTERVAL);
+        }
+    }
+
+    function createAvatar() {
+        const new_players = [];
+        for (var i = 0; i < players.length; i++) {
+            const player = players[i];
+            const movelist = checkDirection(map, player, player.pre_move)
+            for (var n = 0; n < movelist.length; n++) {
+                var new_player = { ...player };
+                move = movelist[n];
+                new_player = movePlayer(map, new_player, move);
+                rows.push(new_player.row);
+                clms.push(new_player.clm);
+                new_players.push(new_player);
+            };
+        }
+        players = new_players;
+        return new_players;
+    }
+
 });
 
 function setPlayer() {
-    var pos = { row: 0, clm: 0 };
+    var pos = { row: 0, clm: 0, pre_move: "" };
     pos.row = Number(start[0].substr(0, 2));
     pos.clm = Number(start[0].substr(2, 2));
 
     for (var i = 1; i < start.length; i++) {
         var row = Number(start[i].substr(0, 2));
         var clm = Number(start[i].substr(2, 2));
+        if (pos.row > row) {
+            pos.row = row;
+        }
+        if (pos.clm > clm) {
+            pos.clm = clm;
+        }
+    }
+    return pos;
+}
+
+function setGoal() {
+    var pos = { row: 0, clm: 0 };
+    pos.row = Number(end[0].substr(0, 2));
+    pos.clm = Number(end[0].substr(2, 2));
+
+    for (var i = 1; i < end.length; i++) {
+        var row = Number(end[i].substr(0, 2));
+        var clm = Number(end[i].substr(2, 2));
         if (pos.row > row) {
             pos.row = row;
         }
@@ -124,11 +204,11 @@ function displayBtn(display) {
     }
 }
 
-function judgeGoal(player, size, map) {
-    if (player.row === size - 6 && player.clm === size - 2) {
+function judgeGoal(player) {
+    if (player.row === goal.row && player.clm === goal.clm) {
         console.log('GameClear');
         console.log(player);
-        displayLoadtoGoal(player, size, map);
+        // displayLoadtoGoal(player, size, map);
         return true;
     };
     return false;
@@ -136,44 +216,85 @@ function judgeGoal(player, size, map) {
 
 function checkDirection(map, player, pre_move) {
     const movelist = [];
-    if (map[player.row - 1][player.clm] === 0 && pre_move !== 'down') {
+    if (map[player.row - 1][player.clm] > THRESHHOLD
+        && map[player.row - 1][player.clm + player_size] > THRESHHOLD
+        && pre_move !== 'down') {
         movelist.push('up')
     }
-    if (map[player.row][player.clm - 1] === 0 && pre_move !== 'right') {
+    if (map[player.row][player.clm - 1] > THRESHHOLD
+        && map[player.row + player_size][player.clm - 1] > THRESHHOLD
+        && pre_move !== 'right') {
         movelist.push('left')
     }
-    if (map[player.row][player.clm + 1] === 0 && pre_move !== 'left') {
+    if (map[player.row][player.clm + player_size + 1] > THRESHHOLD
+        && map[player.row + player_size][player.clm + player_size + 1] > THRESHHOLD
+        && pre_move !== 'left') {
         movelist.push('right')
     }
-    if (map[player.row + 1][player.clm] === 0 && pre_move !== 'up') {
+    if (map[player.row + player_size + 1][player.clm] > THRESHHOLD
+        && map[player.row + player_size + 1][player.clm + player_size] > THRESHHOLD
+        && pre_move !== 'up') {
         movelist.push('down')
     }
     if (movelist.length === 0) {
         // console.log('delete');
     }
     return movelist;
-}
+};
+
+function movePlayer(map, new_player, move) {
+    switch (move) {
+        case 'up':
+            if (map[new_player.row - 1][new_player.clm] === 0) {
+                new_player.row = new_player.row - 1;
+            }
+            break;
+        case 'left':
+            if (map[new_player.row][new_player.clm - 1] === 0) {
+                new_player.clm = new_player.clm - 1;
+            }
+            break;
+        case 'right':
+            if (map[new_player.row][new_player.clm + 1] === 0) {
+                new_player.clm = new_player.clm + 1;
+            } break;
+        case 'down':
+            if (map[new_player.row + 1][new_player.clm] === 0) {
+                new_player.row = new_player.row + 1;
+            } break;
+        default:
+            console.log('error move= ' + move);
+    }
+    new_player.pre_move = move;
+    return new_player;
+};
 
 function movePlayer_btn(map, player, btn) {
     switch (btn) {
         case 'up':
-            if (map[player.row - 1][player.clm] > THRESHHOLD) {
+            if (map[player.row - 1][player.clm] > THRESHHOLD
+                && map[player.row - 1][player.clm + player_size] > THRESHHOLD) {
                 player.row = player.row - 1;
             }
             break;
         case 'left':
-            if (map[player.row][player.clm - 1] > THRESHHOLD) {
+            if (map[player.row][player.clm - 1] > THRESHHOLD
+                && map[player.row + player_size][player.clm - 1] > THRESHHOLD) {
                 player.clm = player.clm - 1;
             }
             break;
         case 'right':
-            if (map[player.row][player.clm + player_size + 1] > THRESHHOLD) {
+            if (map[player.row][player.clm + player_size + 1] > THRESHHOLD
+                && map[player.row + player_size][player.clm + player_size + 1] > THRESHHOLD) {
                 player.clm = player.clm + 1;
-            } break;
+            }
+            break;
         case 'down':
-            if (map[player.row + player_size + 1][player.clm] > THRESHHOLD) {
+            if (map[player.row + player_size + 1][player.clm] > THRESHHOLD
+                && map[player.row + player_size + 1][player.clm + player_size] > THRESHHOLD) {
                 player.row = player.row + 1;
-            } break;
+            }
+            break;
         default:
             console.log('error btn= ' + btn);
     }
@@ -183,22 +304,26 @@ function movePlayer_btn(map, player, btn) {
 function movePlayer_key(map, player, key) {
     switch (key) {
         case 38: // Key[↑]
-            if (map[player.row - 1][player.clm] > THRESHHOLD) {
+            if (map[player.row - 1][player.clm] > THRESHHOLD
+                && map[player.row - 1][player.clm + player_size] > THRESHHOLD) {
                 player.row = player.row - 1;
             }
             break;
         case 37: // Key[←]
-            if (map[player.row][player.clm - 1] > THRESHHOLD) {
+            if (map[player.row][player.clm - 1] > THRESHHOLD
+                && map[player.row + player_size][player.clm - 1] > THRESHHOLD) {
                 player.clm = player.clm - 1;
             }
             break;
         case 39: // Key[→]
-            if (map[player.row][player.clm + player_size + 1] > THRESHHOLD) {
+            if (map[player.row][player.clm + player_size + 1] > THRESHHOLD
+                && map[player.row + player_size][player.clm + player_size + 1] > THRESHHOLD) {
                 player.clm = player.clm + 1;
             }
             break;
         case 40: // Key[↓]
-            if (map[player.row + player_size + 1][player.clm] > THRESHHOLD) {
+            if (map[player.row + player_size + 1][player.clm] > THRESHHOLD
+                && map[player.row + player_size + 1][player.clm + player_size] > THRESHHOLD) {
                 player.row = player.row + 1;
             }
             break;
@@ -237,6 +362,48 @@ function displayLoad(size, map, player) {
             }
 
 
+            str += '</div>';
+        }
+        str += '</div>';
+        $('#meiro').append(str);
+        str = "";
+    }
+    for (var j = 0; j < start.length; j++) {
+        $('#id' + start[j]).addClass('s');
+    }
+    for (var j = 0; j < end.length; j++) {
+        $('#id' + end[j]).addClass('e');
+    }
+}
+
+function displayLoad_bunshin
+(size, map, player) {
+    $('#meiro').empty();
+    var str = "";
+    for (var i = 0; i < size; i++) {
+        var str_i = String(getdoubleDigestNumer(i));
+        const line = map[i];
+        const length = line.length;
+        str += '<div class="block">';
+        for (var n = 0; n < length; n++) {
+            var str_n = String(getdoubleDigestNumer(n));
+            if (line[n] > THRESHHOLD) {
+                //playerがいる場所
+                for (var j = 0; j < players.length; j++) {
+                    var player = players[j];
+                    if (i === player.row && n === player.clm
+                        || i === player.row && n === player.clm + player_size
+                        || i === player.row + player_size && n === player.clm
+                        || i === player.row + player_size && n === player.clm + player_size) {
+                        str += '<div ' + 'id=id' + str_i + str_n + ' class="p z">';
+                        break;
+                    } else {
+                        str += '<div ' + 'id=id' + str_i + str_n + ' class="p">';
+                    }
+                }
+            } else {
+                str += '<div ' + 'id=id' + str_i + str_n + ' class="w">';
+            }
             str += '</div>';
         }
         str += '</div>';
