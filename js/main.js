@@ -13,6 +13,7 @@ var position = {};
 var start = [];
 var end = [];
 var player_size = 0;
+//
 
 $(function () {
     var players = [];
