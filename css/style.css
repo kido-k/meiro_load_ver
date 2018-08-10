@@ -88,9 +88,18 @@
 }
 
 #drop_zone {
-    /* position:relative; */
-    width: 200px;
-    height: 200px;
+    width: 240px;
+    height: 240px;
+    border: 2px dashed #bbb;
+    display: inline-block;
+    border-radius: 5px;
+    margin: 10px;
+    color: #bbb;
+}
+
+#camera_zone {
+    width: 240px;
+    height:240px;
     border: 2px dashed #bbb;
     display: inline-block;
     border-radius: 5px;

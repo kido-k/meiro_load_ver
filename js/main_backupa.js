@@ -1,8 +1,8 @@
 
 
 const EXECUTION_INTERVAL = 10;
-const CANVAS_SIZE = 100;
-const THRESHHOLD = 150;
+const CANVAS_SIZE = 80;
+const THRESHHOLD = 1;
 const PLAYSER_SIZE_HOSEI = 1;
 const CHECK_DISTANCE = 3;
 
@@ -14,7 +14,6 @@ var position = {};
 var start = [];
 var end = [];
 var player_size = 0;
-var wall_width = 0;
 
 $(function () {
     var players = [];
@@ -85,18 +84,19 @@ $(function () {
             if (end.length > 0) {
                 end_flg = true;
                 $('#msg').html('ゲームを開始！！');
+                // player = { row: 7, clm: 1 };
                 player = setPlayer();
                 players.push(player);
                 goal = setGoal();
             }
         }
-        displayLoad(size, map, player);
+        displayLoad(CANVAS_SIZE, map, player);
     });
 
     $('#step').on('click', function () {
         if (!finish) {
             var new_players = createAvatar();
-            finish = displayLoad_bunshin(size, map, new_players);
+            finish = displayLoad_bunshin(CANVAS_SIZE, map, new_players);
             for (var i = 0; i < new_players.length; i++) {
                 var new_player = new_players[i];
                 finish = judgeGoal(new_player);
@@ -114,7 +114,7 @@ $(function () {
     function searchGoal() {
         if (!finish) {
             var new_players = createAvatar();
-            finish = displayLoad_bunshin(size, map, new_players);
+            finish = displayLoad_bunshin(CANVAS_SIZE, map, new_players);
             for (var i = 0; i < new_players.length; i++) {
                 var new_player = new_players[i];
                 finish = judgeGoal(new_player);
@@ -474,7 +474,7 @@ function displayLoad_bunshin(size, map, players) {
     $('#meiro').empty();
     if (players.length === 0) {
         console.log('ゴールできませんでした');
-        return true;
+        return false;
     }
     var str = "";
     for (var i = 0; i < size; i++) {
@@ -838,6 +838,9 @@ function dragFile() {
             $("#drop_msg").css({ display: 'none' });
             $("#drop_zone").css({ border: '2px dashed #ff8952' });
         }
+        //ファイルの読込が終了した時の処理
+        // anallizeImage(img);
+
     }
 }
 
@@ -902,52 +905,9 @@ function processImageData() {
             }
             red.push(red_x);
         }
-
-        var cnt = 0;
-        var width_cnt = 0;
-        var end = false;
-        var start = false;
-        var start_pos = { x: 0, y: 0 }
-        for (var i = 0; i < red.length; i++) {
-            var line = red[i]
-            if (cnt != 0) {
-                if (cnt / line.length > 0.9) {
-                    width_cnt += 1;
-                    cnt = 0;
-                } else {
-                    wall_width = width_cnt;
-                    end = true;
-                    break;
-                }
-            }
-            if (end) {
-                break;
-            }
-            for (var j = 0; j < line.length; j++) {
-                if (line[j] === 0) {
-                    cnt += 1;
-                    if (!start) {
-                        start_pos.x = j;
-                        start_pos.y = i;
-                        start = true;
-                    }
-                }
-            }
-        }
-        console.log(wall_width);
-        console.log(start_pos);
-
-        for (var y = start_pos.y; y < red.length; y = y + wall_width) {
-            var list = [];
-            var line = red[y];
-            for (var x = start_pos.x; x < line.length; x = x + wall_width) {
-                list.push(line[x]);
-            }
-            map.push(list);
-        }
-        console.log(map);
-        size = map.length;
-        displayLoad(size, map, player)
+        console.log(red);
+        map = red;
+        displayLoad(height, red, player)
     }
     $('#btn').css({ display: 'inline' });
 }
@@ -983,7 +943,7 @@ function startVideo() {
             return navigator.mediaDevices.getUserMedia({
                 audio: false,
                 video: {
-                    deviceId: videoDevices[1].deviceId
+                    deviceId: videoDevices[0].deviceId
                 }
             });
         })
@@ -1009,33 +969,10 @@ function stopVideo() {
 }
 
 function snapshot() {
-    //videoタグ取得
-    var videocnt = $("#camera_zone");
-    //canvas取得
-    var canvas = $("#canvas")[0];
-    canvas.width = videocnt.width();
-    canvas.height = videocnt.height();
-    var cnt2d = $("#canvas")[0].getContext('2d');
-    //canvasに書き込み
-    // cnt2d.drawImage(videocnt[0], 0, 0);
-    cnt2d.drawImage(videocnt[0], 0, 0, 800, 800, 0, 0, CANVAS_SIZE, CANVAS_SIZE);
+    var videoElement = document.querySelector('video');
+    var canvasElement = document.querySelector('canvas');
+    var context = canvasElement.getContext('2d');
 
-    if (canvas.getContext) {
-        // コンテキストの取得
-        // var ctx = canvas.getContext("2d");
-        var red = [];
-        var img_data = cnt2d.getImageData(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-
-        for (var y = 0; y < 100; y++) {
-            var red_x = [];
-            for (var x = 0; x < 100; x++) {
-                var index = (y * CANVAS_SIZE * 4) + x * 4;
-                red_x.push(img_data.data[index]);
-            }
-            red.push(red_x);
-        }
-    }
-    map = red;
-    console.log(map);
-    displayLoad(size, map, player)
+    context.drawImage(videoElement, 0, 0, videoElement.width, videoElement.height);
+    document.querySelector('img').src = canvasElement.toDataURL('image/webp');
 }
