@@ -2,7 +2,7 @@
 
 const EXECUTION_INTERVAL = 10;
 const CANVAS_SIZE = 80;
-const THRESHHOLD = 1;
+const THRESHHOLD = 100;
 const PLAYSER_SIZE_HOSEI = 1;
 const CHECK_DISTANCE = 3;
 
@@ -943,7 +943,7 @@ function startVideo() {
             return navigator.mediaDevices.getUserMedia({
                 audio: false,
                 video: {
-                    deviceId: videoDevices[0].deviceId
+                    deviceId: videoDevices[1].deviceId
                 }
             });
         })
@@ -969,10 +969,33 @@ function stopVideo() {
 }
 
 function snapshot() {
-    var videoElement = document.querySelector('video');
-    var canvasElement = document.querySelector('canvas');
-    var context = canvasElement.getContext('2d');
+    //videoタグ取得
+    var videocnt = $("#camera_zone");
+    //canvas取得
+    var canvas = $("#canvas")[0];
+    canvas.width = videocnt.width();
+    canvas.height = videocnt.height();
+    var cnt2d = $("#canvas")[0].getContext('2d');
+    //canvasに書き込み
+    // cnt2d.drawImage(videocnt[0], 0, 0);
+    cnt2d.drawImage(videocnt[0], 0, 0, 800, 800, 0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
-    context.drawImage(videoElement, 0, 0, videoElement.width, videoElement.height);
-    document.querySelector('img').src = canvasElement.toDataURL('image/webp');
-}
+    if (canvas.getContext) {
+        // コンテキストの取得
+        // var ctx = canvas.getContext("2d");
+        var red = [];
+        var img_data = cnt2d.getImageData(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+
+        for (var y = 0; y < 100; y++) {
+            var red_x = [];
+            for (var x = 0; x < 100; x++) {
+                var index = (y * CANVAS_SIZE * 4) + x * 4;
+                red_x.push(img_data.data[index]);
+            }
+            red.push(red_x);
+        }
+    }
+    size = CANVAS_SIZE;
+    map = red;
+    console.log(map);
+    displayLoad(size, map, player)}

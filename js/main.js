@@ -111,6 +111,12 @@ $(function () {
         }
     });
 
+    $('#download').on('click', function(){
+        if(map.length !==0){
+            downloadCsv(map);
+        }
+    });
+
     function searchGoal() {
         if (!finish) {
             var new_players = createAvatar();
@@ -903,48 +909,49 @@ function processImageData() {
             red.push(red_x);
         }
 
-        var cnt = 0;
-        var width_cnt = 0;
-        var end = false;
-        var start = false;
-        var start_pos = { x: 0, y: 0 }
-        for (var i = 0; i < red.length; i++) {
-            var line = red[i]
-            if (cnt != 0) {
-                if (cnt / line.length > 0.9) {
-                    width_cnt += 1;
-                    cnt = 0;
-                } else {
-                    wall_width = width_cnt;
-                    end = true;
-                    break;
-                }
-            }
-            if (end) {
-                break;
-            }
-            for (var j = 0; j < line.length; j++) {
-                if (line[j] === 0) {
-                    cnt += 1;
-                    if (!start) {
-                        start_pos.x = j;
-                        start_pos.y = i;
-                        start = true;
-                    }
-                }
-            }
-        }
-        console.log(wall_width);
-        console.log(start_pos);
+        // var cnt = 0;
+        // var width_cnt = 0;
+        // var end = false;
+        // var start = false;
+        // var start_pos = { x: 0, y: 0 }
+        // for (var i = 0; i < red.length; i++) {
+        //     var line = red[i]
+        //     if (cnt != 0) {
+        //         if (cnt / line.length > 0.9) {
+        //             width_cnt += 1;
+        //             cnt = 0;
+        //         } else {
+        //             wall_width = width_cnt;
+        //             end = true;
+        //             break;
+        //         }
+        //     }
+        //     if (end) {
+        //         break;
+        //     }
+        //     for (var j = 0; j < line.length; j++) {
+        //         if (line[j] === 0) {
+        //             cnt += 1;
+        //             if (!start) {
+        //                 start_pos.x = j;
+        //                 start_pos.y = i;
+        //                 start = true;
+        //             }
+        //         }
+        //     }
+        // }
+        // console.log(wall_width);
+        // console.log(start_pos);
 
-        for (var y = start_pos.y; y < red.length; y = y + wall_width) {
-            var list = [];
-            var line = red[y];
-            for (var x = start_pos.x; x < line.length; x = x + wall_width) {
-                list.push(line[x]);
-            }
-            map.push(list);
-        }
+        // for (var y = start_pos.y; y < red.length; y = y + wall_width) {
+        //     var list = [];
+        //     var line = red[y];
+        //     for (var x = start_pos.x; x < line.length; x = x + wall_width) {
+        //         list.push(line[x]);
+        //     }
+        //     map.push(list);
+        // }
+        map = red;
         console.log(map);
         size = map.length;
         displayLoad(size, map, player)
@@ -1035,7 +1042,49 @@ function snapshot() {
             red.push(red_x);
         }
     }
+    size = CANVAS_SIZE;
     map = red;
     console.log(map);
     displayLoad(size, map, player)
 }
+
+
+var downloadCsv = (function() {
+
+    var tableToCsvString = function(table) {
+        var str = '\uFEFF';
+        for (var i = 0, imax = table.length - 1; i <= imax; ++i) {
+            var row = table[i];
+            for (var j = 0, jmax = row.length - 1; j <= jmax; ++j) {
+                str += row[j];
+                if (j !== jmax) {
+                    str += ',';
+                }
+            }
+            str += '\n';
+        }
+        return str;
+    };
+
+    var createDataUriFromString = function(str) {
+        return 'data:text/csv,' + encodeURIComponent(str);
+    }
+
+    var downloadDataUri = function(uri, filename) {
+        var link = document.createElement('a');
+        link.download = filename;
+        link.href = uri;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    return function(table, filename) {
+        if (!filename) {
+            filename = 'output.csv';
+        }
+        var uri = createDataUriFromString(tableToCsvString(table));
+        downloadDataUri(uri, filename);
+    };
+
+})();
