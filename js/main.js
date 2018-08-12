@@ -969,6 +969,7 @@ function makeObject(map) {
                     if (map_x[x] === map_x[x - 1]) {
                         x_cnt += 1;
                     } else {
+                        x_cnt += 1;
                         if (map_x[x] === 0) {
                             parts.type = 'pass';
                         } else {
@@ -986,7 +987,7 @@ function makeObject(map) {
     }
     console.log(parts_list);
     displaySVG(parts_list);
-    // displayAFRAME(parts_list);
+    displayAFRAME(parts_list);
 }
 
 function displaySVG(parts_list) {
@@ -1011,13 +1012,13 @@ function displayAFRAME(parts_list) {
     var str = "";
     str += '<a-scene  embedded>';
     str += '<a-sky color="#DDDDDD"></a-sky>';
-    str += '<a-camera position="50 50 80" cursor-visible="true" cursor-scale="2" cursor-color="#0095DD" cursor-opacity="0.5"></a-camera>';
+    str += '<a-camera position="20 70 70" rotation="0 0 0" cursor-visible="true" cursor-scale="2" cursor-color="#0095DD" cursor-opacity="0.5"></a-camera>';
     for (var i = 0; i < parts_list.length; i++) {
         var parts = parts_list[i];
         if (parts.type === 'pass') {
-            str += '<a-box width= ' + parts.width + ' height="1" depth="1" position="' + parts.x + ' ' + parts.y + ' 0" color="white"></a-box>';
+            str += '<a-box width= ' + parts.width + ' height="1" depth="1" position="' + (parts.x + parts.width / 2) + ' 0 ' + parts.y + '" color="white"></a-box>';
         } else {
-            str += '<a-box width= ' + parts.width + ' height="1" depth="1" position="' + parts.x + ' ' + parts.y + ' 0" color="blue"></a-box>';
+            str += '<a-box width= ' + parts.width + ' height="4" depth="1" position="' + (parts.x + parts.width / 2) + ' 2 ' + parts.y + '" color="blue"></a-box>';
         }
     }
     str += '</a-scene>';
