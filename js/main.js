@@ -5,6 +5,7 @@ const CANVAS_SIZE = 100;
 const THRESHHOLD = 150;
 const PLAYSER_SIZE_HOSEI = 1;
 const CHECK_DISTANCE = 3;
+const MAGNIFICATION = 6;
 
 var image;
 var player = {};
@@ -25,6 +26,8 @@ $(function () {
     var end_flg = false;
     var rows = [];
     var clms = [];
+
+    // return;
 
     dragFile();
 
@@ -111,8 +114,8 @@ $(function () {
         }
     });
 
-    $('#download').on('click', function(){
-        if(map.length !==0){
+    $('#download').on('click', function () {
+        if (map.length !== 0) {
             downloadCsv(map);
         }
     });
@@ -222,119 +225,119 @@ function checkDirection(map, player, pre_move) {
     const movelist = [];
     switch (pre_move) {
         case 'up':
-            if (map[player.row - 1][player.clm] > THRESHHOLD
-                && map[player.row - 1][player.clm + player_size] > THRESHHOLD) {
+            if (map[player.row - 1][player.clm] === 1
+                && map[player.row - 1][player.clm + player_size] === 1) {
                 movelist.push('up');
             }
-            if (map[player.row][player.clm - 1] > THRESHHOLD
-                && map[player.row][player.clm - CHECK_DISTANCE] > THRESHHOLD
-                && map[player.row + player_size][player.clm - 1] > THRESHHOLD
-                && map[player.row + player_size][player.clm - CHECK_DISTANCE] > THRESHHOLD
-                && (map[player.row + player_size + 1][player.clm - 1] < THRESHHOLD
-                    || map[player.row + player_size + 1][player.clm - CHECK_DISTANCE] < THRESHHOLD)
+            if (map[player.row][player.clm - 1] = 1
+                && map[player.row][player.clm - CHECK_DISTANCE] === 1
+                && map[player.row + player_size][player.clm - 1] === 1
+                && map[player.row + player_size][player.clm - CHECK_DISTANCE] === 1
+                && (map[player.row + player_size + 1][player.clm - 1] === 0
+                    || map[player.row + player_size + 1][player.clm - CHECK_DISTANCE] === 0)
             ) {
                 movelist.push('left');
             }
-            if (map[player.row][player.clm + player_size + 1] > THRESHHOLD
-                && map[player.row][player.clm + player_size + CHECK_DISTANCE] > THRESHHOLD
-                && map[player.row + player_size][player.clm + player_size + 1] > THRESHHOLD
-                && map[player.row + player_size][player.clm + player_size + CHECK_DISTANCE] > THRESHHOLD
-                && (map[player.row + player_size + 1][player.clm + player_size + 1] < THRESHHOLD
-                    || map[player.row + player_size + 1][player.clm + player_size + CHECK_DISTANCE] < THRESHHOLD)
+            if (map[player.row][player.clm + player_size + 1] === 1
+                && map[player.row][player.clm + player_size + CHECK_DISTANCE] === 1
+                && map[player.row + player_size][player.clm + player_size + 1] === 1
+                && map[player.row + player_size][player.clm + player_size + CHECK_DISTANCE] === 1
+                && (map[player.row + player_size + 1][player.clm + player_size + 1] === 0
+                    || map[player.row + player_size + 1][player.clm + player_size + CHECK_DISTANCE] === 0)
             ) {
                 movelist.push('right');
             }
             break;
         case 'left':
-            if (map[player.row - 1][player.clm] > THRESHHOLD
-                && map[player.row - CHECK_DISTANCE][player.clm] > THRESHHOLD
-                && map[player.row - 1][player.clm + player_size] > THRESHHOLD
-                && map[player.row - 1 - CHECK_DISTANCE][player.clm + player_size] > THRESHHOLD
-                && (map[player.row - 1][player.clm + player_size + 1] < THRESHHOLD
-                    || map[player.row - 1 - CHECK_DISTANCE][player.clm + player_size + 1] < THRESHHOLD)
+            if (map[player.row - 1][player.clm] === 1
+                && map[player.row - CHECK_DISTANCE][player.clm] === 1
+                && map[player.row - 1][player.clm + player_size] === 1
+                && map[player.row - 1 - CHECK_DISTANCE][player.clm + player_size] === 1
+                && (map[player.row - 1][player.clm + player_size + 1] === 0
+                    || map[player.row - 1 - CHECK_DISTANCE][player.clm + player_size + 1] === 0)
             ) {
                 movelist.push('up');
             }
-            if (map[player.row][player.clm - 1] > THRESHHOLD
-                && map[player.row + player_size][player.clm - 1] > THRESHHOLD) {
+            if (map[player.row][player.clm - 1] === 1
+                && map[player.row + player_size][player.clm - 1] === 1) {
                 movelist.push('left');
             }
-            if (map[player.row + player_size + 1][player.clm] > THRESHHOLD
-                && map[player.row + player_size + CHECK_DISTANCE][player.clm] > THRESHHOLD
-                && map[player.row + player_size + 1][player.clm + player_size] > THRESHHOLD
-                && map[player.row + player_size + CHECK_DISTANCE][player.clm + player_size] > THRESHHOLD
-                && (map[player.row + player_size + 1][player.clm + player_size + 1] < THRESHHOLD
-                    || map[player.row + player_size + CHECK_DISTANCE][player.clm + player_size + 1] < THRESHHOLD)
+            if (map[player.row + player_size + 1][player.clm] === 1
+                && map[player.row + player_size + CHECK_DISTANCE][player.clm] === 1
+                && map[player.row + player_size + 1][player.clm + player_size] === 1
+                && map[player.row + player_size + CHECK_DISTANCE][player.clm + player_size] === 1
+                && (map[player.row + player_size + 1][player.clm + player_size + 1] === 0
+                    || map[player.row + player_size + CHECK_DISTANCE][player.clm + player_size + 1] === 0)
             ) {
                 movelist.push('down');
             }
             break;
         case 'right':
-            if (map[player.row - 1][player.clm] > THRESHHOLD
-                && map[player.row - CHECK_DISTANCE][player.clm] > THRESHHOLD
-                && map[player.row - 1][player.clm + player_size] > THRESHHOLD
-                && map[player.row - 1 - CHECK_DISTANCE][player.clm + player_size] > THRESHHOLD
-                && (map[player.row - 1][player.clm - 1] < THRESHHOLD
-                    || map[player.row - 1 - CHECK_DISTANCE][player.clm - 1] < THRESHHOLD)
+            if (map[player.row - 1][player.clm] === 1
+                && map[player.row - CHECK_DISTANCE][player.clm] === 1
+                && map[player.row - 1][player.clm + player_size] === 1
+                && map[player.row - 1 - CHECK_DISTANCE][player.clm + player_size] === 1
+                && (map[player.row - 1][player.clm - 1] === 0
+                    || map[player.row - 1 - CHECK_DISTANCE][player.clm - 1] === 0)
             ) {
                 movelist.push('up');
             }
-            if (map[player.row][player.clm + player_size + 1] > THRESHHOLD
-                && map[player.row + player_size][player.clm + player_size + 1] > THRESHHOLD) {
+            if (map[player.row][player.clm + player_size + 1] === 1
+                && map[player.row + player_size][player.clm + player_size + 1] === 1) {
                 movelist.push('right');
             }
-            if (map[player.row + player_size + 1][player.clm] > THRESHHOLD
-                && map[player.row + player_size + CHECK_DISTANCE][player.clm] > THRESHHOLD
-                && map[player.row + player_size + 1][player.clm + player_size] > THRESHHOLD
-                && map[player.row + player_size + CHECK_DISTANCE][player.clm + player_size] > THRESHHOLD
-                && (map[player.row + player_size + 1][player.clm - 1] < THRESHHOLD
-                    || map[player.row + player_size + CHECK_DISTANCE][player.clm - 1] < THRESHHOLD)
+            if (map[player.row + player_size + 1][player.clm] === 1
+                && map[player.row + player_size + CHECK_DISTANCE][player.clm] === 1
+                && map[player.row + player_size + 1][player.clm + player_size] === 1
+                && map[player.row + player_size + CHECK_DISTANCE][player.clm + player_size] === 1
+                && (map[player.row + player_size + 1][player.clm - 1] === 0
+                    || map[player.row + player_size + CHECK_DISTANCE][player.clm - 1] === 0)
             ) {
                 movelist.push('down');
             }
             break;
         case 'down':
-            if (map[player.row][player.clm - 1] > THRESHHOLD
-                && map[player.row][player.clm - CHECK_DISTANCE] > THRESHHOLD
-                && map[player.row + player_size][player.clm - 1] > THRESHHOLD
-                && map[player.row + player_size][player.clm - CHECK_DISTANCE] > THRESHHOLD
-                && (map[player.row - 1][player.clm - 1] < THRESHHOLD
-                    || map[player.row - 1][player.clm - CHECK_DISTANCE] < THRESHHOLD)
+            if (map[player.row][player.clm - 1] === 1
+                && map[player.row][player.clm - CHECK_DISTANCE] === 1
+                && map[player.row + player_size][player.clm - 1] === 1
+                && map[player.row + player_size][player.clm - CHECK_DISTANCE] === 1
+                && (map[player.row - 1][player.clm - 1] === 0
+                    || map[player.row - 1][player.clm - CHECK_DISTANCE] === 0)
             ) {
                 movelist.push('left');
             }
-            if (map[player.row][player.clm + player_size + 1] > THRESHHOLD
-                && map[player.row][player.clm + player_size + CHECK_DISTANCE] > THRESHHOLD
-                && map[player.row + player_size][player.clm + player_size + 1] > THRESHHOLD
-                && map[player.row + player_size][player.clm + player_size + CHECK_DISTANCE] > THRESHHOLD
-                && (map[player.row - 1][player.clm + player_size + 1] < THRESHHOLD
-                    || map[player.row - 1][player.clm + player_size + CHECK_DISTANCE] < THRESHHOLD)
+            if (map[player.row][player.clm + player_size + 1] === 1
+                && map[player.row][player.clm + player_size + CHECK_DISTANCE] === 1
+                && map[player.row + player_size][player.clm + player_size + 1] === 1
+                && map[player.row + player_size][player.clm + player_size + CHECK_DISTANCE] === 1
+                && (map[player.row - 1][player.clm + player_size + 1] === 0
+                    || map[player.row - 1][player.clm + player_size + CHECK_DISTANCE] === 0)
             ) {
                 movelist.push('right');
             }
-            if (map[player.row + player_size + 1][player.clm] > THRESHHOLD
-                && map[player.row + player_size + 1][player.clm + player_size] > THRESHHOLD) {
+            if (map[player.row + player_size + 1][player.clm] === 1
+                && map[player.row + player_size + 1][player.clm + player_size] === 1) {
                 movelist.push('down');
             }
             break;
         default:
-            if (map[player.row - 1][player.clm] > THRESHHOLD
-                && map[player.row - 1][player.clm + player_size] > THRESHHOLD
+            if (map[player.row - 1][player.clm] === 1
+                && map[player.row - 1][player.clm + player_size] === 1
                 && pre_move !== 'down') {
                 movelist.push('up');
             }
-            if (map[player.row][player.clm - 1] > THRESHHOLD
-                && map[player.row + player_size][player.clm - 1] > THRESHHOLD
+            if (map[player.row][player.clm - 1] === 1
+                && map[player.row + player_size][player.clm - 1] === 1
                 && pre_move !== 'right') {
                 movelist.push('left');
             }
-            if (map[player.row][player.clm + player_size + 1] > THRESHHOLD
-                && map[player.row + player_size][player.clm + player_size + 1] > THRESHHOLD
+            if (map[player.row][player.clm + player_size + 1] === 1
+                && map[player.row + player_size][player.clm + player_size + 1] === 1
                 && pre_move !== 'left') {
                 movelist.push('right');
             }
-            if (map[player.row + player_size + 1][player.clm] > THRESHHOLD
-                && map[player.row + player_size + 1][player.clm + player_size] > THRESHHOLD
+            if (map[player.row + player_size + 1][player.clm] === 1
+                && map[player.row + player_size + 1][player.clm + player_size] === 1
                 && pre_move !== 'up') {
                 movelist.push('down');
             }
@@ -345,21 +348,21 @@ function checkDirection(map, player, pre_move) {
 function movePlayer(map, new_player, move) {
     switch (move) {
         case 'up':
-            if (map[new_player.row - 1][new_player.clm] > THRESHHOLD) {
+            if (map[new_player.row - 1][new_player.clm] === 1) {
                 new_player.row = new_player.row - 1;
             }
             break;
         case 'left':
-            if (map[new_player.row][new_player.clm - 1] > THRESHHOLD) {
+            if (map[new_player.row][new_player.clm - 1] === 1) {
                 new_player.clm = new_player.clm - 1;
             }
             break;
         case 'right':
-            if (map[new_player.row][new_player.clm + 1] > THRESHHOLD) {
+            if (map[new_player.row][new_player.clm + 1] === 1) {
                 new_player.clm = new_player.clm + 1;
             } break;
         case 'down':
-            if (map[new_player.row + 1][new_player.clm] > THRESHHOLD) {
+            if (map[new_player.row + 1][new_player.clm] === 1) {
                 new_player.row = new_player.row + 1;
             } break;
         default:
@@ -372,26 +375,26 @@ function movePlayer(map, new_player, move) {
 function movePlayer_btn(map, player, btn) {
     switch (btn) {
         case 'up':
-            if (map[player.row - 1][player.clm] > THRESHHOLD
-                && map[player.row - 1][player.clm + player_size] > THRESHHOLD) {
+            if (map[player.row - 1][player.clm] === 1
+                && map[player.row - 1][player.clm + player_size] === 1) {
                 player.row = player.row - 1;
             }
             break;
         case 'left':
-            if (map[player.row][player.clm - 1] > THRESHHOLD
-                && map[player.row + player_size][player.clm - 1] > THRESHHOLD) {
+            if (map[player.row][player.clm - 1] === 1
+                && map[player.row + player_size][player.clm - 1] === 1) {
                 player.clm = player.clm - 1;
             }
             break;
         case 'right':
-            if (map[player.row][player.clm + player_size + 1] > THRESHHOLD
-                && map[player.row + player_size][player.clm + player_size + 1] > THRESHHOLD) {
+            if (map[player.row][player.clm + player_size + 1] === 1
+                && map[player.row + player_size][player.clm + player_size + 1] === 1) {
                 player.clm = player.clm + 1;
             }
             break;
         case 'down':
-            if (map[player.row + player_size + 1][player.clm] > THRESHHOLD
-                && map[player.row + player_size + 1][player.clm + player_size] > THRESHHOLD) {
+            if (map[player.row + player_size + 1][player.clm] === 1
+                && map[player.row + player_size + 1][player.clm + player_size] === 1) {
                 player.row = player.row + 1;
             }
             break;
@@ -404,26 +407,26 @@ function movePlayer_btn(map, player, btn) {
 function movePlayer_key(map, player, key) {
     switch (key) {
         case 38: // Key[↑]
-            if (map[player.row - 1][player.clm] > THRESHHOLD
-                && map[player.row - 1][player.clm + player_size] > THRESHHOLD) {
+            if (map[player.row - 1][player.clm] === 1
+                && map[player.row - 1][player.clm + player_size] === 1) {
                 player.row = player.row - 1;
             }
             break;
         case 37: // Key[←]
-            if (map[player.row][player.clm - 1] > THRESHHOLD
-                && map[player.row + player_size][player.clm - 1] > THRESHHOLD) {
+            if (map[player.row][player.clm - 1] === 1
+                && map[player.row + player_size][player.clm - 1] === 1) {
                 player.clm = player.clm - 1;
             }
             break;
         case 39: // Key[→]
-            if (map[player.row][player.clm + player_size + 1] > THRESHHOLD
-                && map[player.row + player_size][player.clm + player_size + 1] > THRESHHOLD) {
+            if (map[player.row][player.clm + player_size + 1] === 1
+                && map[player.row + player_size][player.clm + player_size + 1] === 1) {
                 player.clm = player.clm + 1;
             }
             break;
         case 40: // Key[↓]
-            if (map[player.row + player_size + 1][player.clm] > THRESHHOLD
-                && map[player.row + player_size + 1][player.clm + player_size] > THRESHHOLD) {
+            if (map[player.row + player_size + 1][player.clm] === 1
+                && map[player.row + player_size + 1][player.clm + player_size] === 1) {
                 player.row = player.row + 1;
             }
             break;
@@ -448,7 +451,7 @@ function displayLoad(size, map, player) {
         str += '<div class="block">';
         for (var n = 0; n < length; n++) {
             var str_n = String(getdoubleDigestNumer(n));
-            if (line[n] > THRESHHOLD) {
+            if (line[n] === 1) {
                 if (i === player.row && n === player.clm
                     || i === player.row && n === player.clm + player_size
                     || i === player.row + player_size && n === player.clm
@@ -490,7 +493,7 @@ function displayLoad_bunshin(size, map, players) {
         str += '<div class="block">';
         for (var n = 0; n < length; n++) {
             var str_n = String(getdoubleDigestNumer(n));
-            if (line[n] > THRESHHOLD) {
+            if (line[n] === 1) {
                 //playerがいる場所
                 for (var j = 0; j < players.length; j++) {
                     var player = players[j];
@@ -535,7 +538,7 @@ function setStartEnd(click_id) {
 
     //北
     for (var i = 1; i < 100; i++) {
-        if (map[pos_row - i][pos_clm] > THRESHHOLD) {
+        if (map[pos_row - i][pos_clm] === 1) {
             dist.north = i;
         } else {
             break;
@@ -544,7 +547,7 @@ function setStartEnd(click_id) {
 
     //北東
     for (var i = 1; i < 100; i++) {
-        if (map[pos_row - i][pos_clm + i] > THRESHHOLD) {
+        if (map[pos_row - i][pos_clm + i] === 1) {
             dist.north_east = i;
         } else {
             break;
@@ -552,7 +555,7 @@ function setStartEnd(click_id) {
     }
     //東
     for (var i = 1; i < 100; i++) {
-        if (map[pos_row][pos_clm + i] > THRESHHOLD) {
+        if (map[pos_row][pos_clm + i] === 1) {
             dist.east = i;
         } else {
             break;
@@ -560,7 +563,7 @@ function setStartEnd(click_id) {
     }
     //南東
     for (var i = 1; i < 100; i++) {
-        if (map[pos_row + i][pos_clm + i] > THRESHHOLD) {
+        if (map[pos_row + i][pos_clm + i] === 1) {
             dist.south_east = i;
         } else {
             break;
@@ -568,7 +571,7 @@ function setStartEnd(click_id) {
     }
     //南
     for (var i = 1; i < 100; i++) {
-        if (map[pos_row + i][pos_clm] > THRESHHOLD) {
+        if (map[pos_row + i][pos_clm] === 1) {
             dist.south = i;
         } else {
             break;
@@ -576,7 +579,7 @@ function setStartEnd(click_id) {
     }
     //南西
     for (var i = 1; i < 100; i++) {
-        if (map[pos_row + i][pos_clm - i] > THRESHHOLD) {
+        if (map[pos_row + i][pos_clm - i] === 1) {
             dist.south_west = i;
         } else {
             break;
@@ -584,7 +587,7 @@ function setStartEnd(click_id) {
     }
     //西
     for (var i = 1; i < 100; i++) {
-        if (map[pos_row][pos_clm - i] > THRESHHOLD) {
+        if (map[pos_row][pos_clm - i] === 1) {
             dist.west = i;
         } else {
             break;
@@ -592,7 +595,7 @@ function setStartEnd(click_id) {
     }
     //北西
     for (var i = 1; i < 100; i++) {
-        if (map[pos_row - i][pos_clm - i] > THRESHHOLD) {
+        if (map[pos_row - i][pos_clm - i] === 1) {
             dist.north_west = i;
         } else {
             break;
@@ -647,7 +650,7 @@ function setStartEnd(click_id) {
                 // list = addPos(list, pos_row, pos_clm + j);
             }
             for (var i = 1; i < 100; i++) {
-                if (map[pos_row - i][pos_clm] > THRESHHOLD) {
+                if (map[pos_row - i][pos_clm] === 1) {
                     list.push(createPositionId(pos_row - i, pos_clm));
                     // list = addPos(list, pos_row - i, pos_clm);
                     for (var j = 1; j < tate; j++) {
@@ -659,7 +662,7 @@ function setStartEnd(click_id) {
                 }
             }
             for (var i = 1; i < 100; i++) {
-                if (map[pos_row + i][pos_clm] > THRESHHOLD) {
+                if (map[pos_row + i][pos_clm] === 1) {
                     list.push(createPositionId(pos_row + i, pos_clm));
                     // list = addPos(list, pos_row + i, pos_clm);
                     for (var j = 1; j < tate; j++) {
@@ -682,7 +685,7 @@ function setStartEnd(click_id) {
                 // list = addPos(list, pos_row + j, pos_clm);
             }
             for (var i = 1; i < 100; i++) {
-                if (map[pos_row][pos_clm - i] > THRESHHOLD) {
+                if (map[pos_row][pos_clm - i] === 1) {
                     list.push(createPositionId(pos_row, pos_clm - i));
                     // list = addPos(list, pos_row, pos_clm - i);
                     for (var j = 1; j < yoko; j++) {
@@ -694,7 +697,7 @@ function setStartEnd(click_id) {
                 }
             }
             for (var i = 1; i < 100; i++) {
-                if (map[pos_row][pos_clm + i] > THRESHHOLD) {
+                if (map[pos_row][pos_clm + i] === 1) {
                     list.push(createPositionId(pos_row, pos_clm + i));
                     // list = addPos(list, pos_row, pos_clm + i);
                     for (var j = 1; j < yoko; j++) {
@@ -900,65 +903,126 @@ function processImageData() {
         var red = [];
         var img_data = ctx.getImageData(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
+        // for (var y = 0; y < height; y++) {
+        //     var red_x = [];
+        //     for (var x = 0; x < width; x++) {
+        //         var index = (y * CANVAS_SIZE * 4) + x * 4;
+        //         red_x.push(img_data.data[index]);
+        //     }
+        //     red.push(red_x);
+        // }
+
         for (var y = 0; y < height; y++) {
             var red_x = [];
+            var val = 0;
             for (var x = 0; x < width; x++) {
                 var index = (y * CANVAS_SIZE * 4) + x * 4;
-                red_x.push(img_data.data[index]);
+                if (img_data.data[index] > THRESHHOLD) {
+                    val = 1;
+                } else {
+                    val = 0;
+                }
+                red_x.push(val);
             }
             red.push(red_x);
         }
-
-        // var cnt = 0;
-        // var width_cnt = 0;
-        // var end = false;
-        // var start = false;
-        // var start_pos = { x: 0, y: 0 }
-        // for (var i = 0; i < red.length; i++) {
-        //     var line = red[i]
-        //     if (cnt != 0) {
-        //         if (cnt / line.length > 0.9) {
-        //             width_cnt += 1;
-        //             cnt = 0;
-        //         } else {
-        //             wall_width = width_cnt;
-        //             end = true;
-        //             break;
-        //         }
-        //     }
-        //     if (end) {
-        //         break;
-        //     }
-        //     for (var j = 0; j < line.length; j++) {
-        //         if (line[j] === 0) {
-        //             cnt += 1;
-        //             if (!start) {
-        //                 start_pos.x = j;
-        //                 start_pos.y = i;
-        //                 start = true;
-        //             }
-        //         }
-        //     }
-        // }
-        // console.log(wall_width);
-        // console.log(start_pos);
-
-        // for (var y = start_pos.y; y < red.length; y = y + wall_width) {
-        //     var list = [];
-        //     var line = red[y];
-        //     for (var x = start_pos.x; x < line.length; x = x + wall_width) {
-        //         list.push(line[x]);
-        //     }
-        //     map.push(list);
-        // }
+        makeObject(red);
         map = red;
         console.log(map);
         size = map.length;
-        displayLoad(size, map, player)
+        // displayLoad(size, map, player)
     }
     $('#btn').css({ display: 'inline' });
 }
 
+function makeObject(map) {
+    var x_cnt = 0;
+    // var y_cnt = 0;
+    var parts = { x: 0, y: 0, width: 1, height: 0, type: '' }
+    const parts_list = [];
+
+    for (var y = 0; y < map.length; y++) {
+        parts = { x: 0, y: y, width: 1, height: 1, type: '' }
+        const map_x = map[y];
+        for (var x = 0; x < map_x.length; x++) {
+            if (x === 0) {
+                x_cnt += 1;
+                parts.x = 0;
+                if (map_x[x] === 1) {
+                    parts.type = 'pass';
+                } else {
+                    parts.type = 'wall';
+                }
+            } else {
+                if (x === map_x.length - 1) {
+                    if (parts.type === '') {
+                        if (map_x[x] === 0) {
+                            parts.type = 'pass';
+                        } else {
+                            parts.type = 'wall';
+                        }
+                    }
+                    parts.width = x_cnt;
+                    parts_list.push(parts);
+                    x_cnt = 0;
+                } else {
+                    if (map_x[x] === map_x[x - 1]) {
+                        x_cnt += 1;
+                    } else {
+                        if (map_x[x] === 0) {
+                            parts.type = 'pass';
+                        } else {
+                            parts.type = 'wall';
+                        }
+                        parts.width = x_cnt;
+                        x_cnt = 0;
+                        parts_list.push(parts);
+                        parts = { x: x, y: y, width: 1, height: 1, type: '' };
+                    }
+                }
+            }
+            // parts_list.push(parts);
+        }
+    }
+    console.log(parts_list);
+    displaySVG(parts_list);
+    // displayAFRAME(parts_list);
+}
+
+function displaySVG(parts_list) {
+    $('#new_meiro').empty();
+    var str = "";
+    str += '<svg width=' + 100 * MAGNIFICATION + ' height=' + 100 * MAGNIFICATION + ' viewBox="0 0 ' + 100 * MAGNIFICATION + ' ' + 100 * MAGNIFICATION + '">';
+
+    for (var i = 0; i < parts_list.length; i++) {
+        var parts = parts_list[i];
+        if (parts.type === 'pass') {
+            str += '<rect x=' + parts.x * MAGNIFICATION + ' y=' + parts.y * MAGNIFICATION + ' width=' + parts.width * MAGNIFICATION + ' height=' + parts.height * MAGNIFICATION + ' fill="white"></rect>';
+        } else {
+            str += '<rect x=' + parts.x * MAGNIFICATION + ' y=' + parts.y * MAGNIFICATION + ' width=' + parts.width * MAGNIFICATION + ' height=' + parts.height * MAGNIFICATION + ' fill="blue"></rect>';
+        }
+    }
+    str += '</svg>';
+    $('#new_meiro').append(str);
+}
+
+function displayAFRAME(parts_list) {
+    $('#vr_meiro').empty();
+    var str = "";
+    str += '<a-scene  embedded>';
+    str += '<a-sky color="#DDDDDD"></a-sky>';
+    str += '<a-camera position="50 50 80" cursor-visible="true" cursor-scale="2" cursor-color="#0095DD" cursor-opacity="0.5"></a-camera>';
+    for (var i = 0; i < parts_list.length; i++) {
+        var parts = parts_list[i];
+        if (parts.type === 'pass') {
+            str += '<a-box width= ' + parts.width + ' height="1" depth="1" position="' + parts.x + ' ' + parts.y + ' 0" color="white"></a-box>';
+        } else {
+            str += '<a-box width= ' + parts.width + ' height="1" depth="1" position="' + parts.x + ' ' + parts.y + ' 0" color="blue"></a-box>';
+        }
+    }
+    str += '</a-scene>';
+    $('#vr_meiro').append(str);
+}
 
 function getdoubleDigestNumer(number) {
     return ("0" + number).slice(-2);
@@ -1045,13 +1109,13 @@ function snapshot() {
     size = CANVAS_SIZE;
     map = red;
     console.log(map);
-    displayLoad(size, map, player)
+    displayLoad(size, map, player);
 }
 
 
-var downloadCsv = (function() {
+var downloadCsv = (function () {
 
-    var tableToCsvString = function(table) {
+    var tableToCsvString = function (table) {
         var str = '\uFEFF';
         for (var i = 0, imax = table.length - 1; i <= imax; ++i) {
             var row = table[i];
@@ -1066,11 +1130,11 @@ var downloadCsv = (function() {
         return str;
     };
 
-    var createDataUriFromString = function(str) {
+    var createDataUriFromString = function (str) {
         return 'data:text/csv,' + encodeURIComponent(str);
     }
 
-    var downloadDataUri = function(uri, filename) {
+    var downloadDataUri = function (uri, filename) {
         var link = document.createElement('a');
         link.download = filename;
         link.href = uri;
@@ -1079,7 +1143,7 @@ var downloadCsv = (function() {
         document.body.removeChild(link);
     };
 
-    return function(table, filename) {
+    return function (table, filename) {
         if (!filename) {
             filename = 'output.csv';
         }
