@@ -926,16 +926,19 @@ function processImageData() {
             }
             red.push(red_x);
         }
-        makeObject(red);
         map = red;
-        console.log(map);
+        var parts_list = makePartsList(red);
+        displaySVG(parts_list);
+        // displayAFRAME(parts_list);
+
+        // console.log(map);
         size = map.length;
         // displayLoad(size, map, player)
     }
     $('#btn').css({ display: 'inline' });
 }
 
-function makeObject(map) {
+function makePartsList(map) {
     var x_cnt = 0;
     // var y_cnt = 0;
     var parts = { x: 0, y: 0, width: 1, height: 0, type: '' }
@@ -962,6 +965,7 @@ function makeObject(map) {
                             parts.type = 'wall';
                         }
                     }
+                    x_cnt += 1;
                     parts.width = x_cnt;
                     parts_list.push(parts);
                     x_cnt = 0;
@@ -985,9 +989,71 @@ function makeObject(map) {
             // parts_list.push(parts);
         }
     }
-    console.log(parts_list);
-    displaySVG(parts_list);
-    displayAFRAME(parts_list);
+    // console.log(parts_list);
+    // return parts_list;
+
+    // 壁のみでテスト------------------------------
+    const wall_list = [];
+
+    for (var i = 0; i < parts_list.length; i++) {
+        var parts = parts_list[i];
+        if (parts.type === 'wall') {
+            wall_list.push(parts);
+        }
+    }
+
+
+    // for (var i = 0; i < wall_list.length; i++) {
+    //     const parts1 = parts_list[i];
+    //     const parts2 = parts_list[i + 1];
+    //     var left_d = parts1.x - parts2.x
+    // }
+
+    wall_list.sort(function (a, b) {
+        if (a.x < b.x) return -1;
+        if (a.x > b.x) return 1;
+        if (a.y < b.y) return -1;
+        if (a.y > b.y) return 1;
+        return 0;
+    });
+
+    new_list = { ...wall_list };
+    console.log(new_list);
+
+    for (var i = 0; i < wall_list.length - 1; i++) {
+        var wall1 = wall_list[i];
+        var wall2 = wall_list[i + 1];
+        var wall_x_dif = wall1.x - wall2.x;
+        var wall_y_dif = wall2.y - wall1.y;
+        var walls = [];
+
+        if (wall_x_dif <= 2 && wall_y_dif === wall1.height) {
+            if (wall1.width === wall2.width) {
+                wall_list[i].height += 1;
+                wall_list.splice(i + 1, 1);
+                i = i - 1;
+            } else {
+                // for (j = i + 1; j < wall_list.length - 1; j++) {
+                //     if (wall1.y + 1 === wall_list[j].y) {
+                //         walls.push(wall_list[j]);
+                //     }
+                // }
+                // for (j = 0; j < walls.length; j++) {
+                //     var wall = walls[j];
+                //     var wall_x_dif = Math.abs(wall1.x - wall.x);
+                //     if (wall_x_dif <= 2) {
+                //         wall_list[i].height += 1;
+                //         wall_list.splice(j, 1);
+                //         i = i - 1;
+                //     }
+                // }
+            }
+        }
+    }
+    console.log(wall_list);
+
+    // ------------------------------    
+    return wall_list;
 }
 
 function displaySVG(parts_list) {
@@ -997,11 +1063,14 @@ function displaySVG(parts_list) {
 
     for (var i = 0; i < parts_list.length; i++) {
         var parts = parts_list[i];
-        if (parts.type === 'pass') {
-            str += '<rect x=' + parts.x * MAGNIFICATION + ' y=' + parts.y * MAGNIFICATION + ' width=' + parts.width * MAGNIFICATION + ' height=' + parts.height * MAGNIFICATION + ' fill="white"></rect>';
-        } else {
+        if (parts.type !== 'pass') {
             str += '<rect x=' + parts.x * MAGNIFICATION + ' y=' + parts.y * MAGNIFICATION + ' width=' + parts.width * MAGNIFICATION + ' height=' + parts.height * MAGNIFICATION + ' fill="blue"></rect>';
         }
+        // if (parts.type === 'pass') {
+        //     str += '<rect x=' + parts.x * MAGNIFICATION + ' y=' + parts.y * MAGNIFICATION + ' width=' + parts.width * MAGNIFICATION + ' height=' + parts.height * MAGNIFICATION + ' fill="white"></rect>';
+        // } else {
+        //     str += '<rect x=' + parts.x * MAGNIFICATION + ' y=' + parts.y * MAGNIFICATION + ' width=' + parts.width * MAGNIFICATION + ' height=' + parts.height * MAGNIFICATION + ' fill="blue"></rect>';
+        // }
     }
     str += '</svg>';
     $('#new_meiro').append(str);
@@ -1012,13 +1081,23 @@ function displayAFRAME(parts_list) {
     var str = "";
     str += '<a-scene  embedded>';
     str += '<a-sky color="#DDDDDD"></a-sky>';
-    str += '<a-camera position="20 70 70" rotation="0 0 0" cursor-visible="true" cursor-scale="2" cursor-color="#0095DD" cursor-opacity="0.5"></a-camera>';
+    str += '<a-box  width= ' + CANVAS_SIZE + ' height=2 ' + 'depth=' + CANVAS_SIZE + ' position="' + (CANVAS_SIZE / 2) + ' 0 ' + (CANVAS_SIZE / 2) + ' color="white" ></a-box>';
+    // str += '<a-camera position="20 70 70" rotation="0 90 0" cursor-visible="true" cursor-scale="2" cursor-color="#0095DD" cursor-opacity="0.5"></a-camera>';
+    str += '<a-entity position="50 100 50" rotation="-90 0 0">';
+    str += '<a-camera></a-camera>';
+    // str += '<a-animation attribute="position" to="0 0 0" direction="alternate" dur="2000" repeat="indefinite">';
+    // str += '</a-animation>';
+    str += '</a-entity>';
+
     for (var i = 0; i < parts_list.length; i++) {
         var parts = parts_list[i];
-        if (parts.type === 'pass') {
-            str += '<a-box width= ' + parts.width + ' height="1" depth="1" position="' + (parts.x + parts.width / 2) + ' 0 ' + parts.y + '" color="white"></a-box>';
-        } else {
-            str += '<a-box width= ' + parts.width + ' height="4" depth="1" position="' + (parts.x + parts.width / 2) + ' 2 ' + parts.y + '" color="blue"></a-box>';
+        // if (parts.type === 'pass') {
+        //     str += '<a-box width= ' + parts.width + ' height="1" depth="1" position="' + (parts.x + parts.width / 2) + ' 0 ' + parts.y + '" color="white"></a-box>';
+        // } else {
+        //     str += '<a-box width= ' + parts.width + ' height="4" depth="1" position="' + (parts.x + parts.width / 2) + ' 2 ' + parts.y + '" color="blue"></a-box>';
+        // }
+        if (parts.type !== 'pass') {
+            str += '<a-box width= ' + parts.width + ' height="8"' + ' depth=' + parts.height + ' position="' + (parts.x + parts.width / 2) + ' 2 ' + (parts.y + parts.height / 2) + '" color="blue"></a-box>';
         }
     }
     str += '</a-scene>';
