@@ -6,6 +6,7 @@ const THRESHHOLD = 150;
 const PLAYSER_SIZE_HOSEI = 1;
 const CHECK_DISTANCE = 3;
 const MAGNIFICATION = 6;
+const CANVAS_SMALL_LIMIT = CANVAS_SIZE / 100 * 2
 
 var image;
 var player = {};
@@ -1023,37 +1024,70 @@ function makePartsList(map) {
     for (var i = 0; i < wall_list.length - 1; i++) {
         var wall1 = wall_list[i];
         var wall2 = wall_list[i + 1];
-        var wall_x_dif = wall1.x - wall2.x;
+        // var wall_x_dif = wall1.x - wall2.x;
         var wall_y_dif = wall2.y - wall1.y;
-        var walls = [];
+        var wall_w_dif = Math.abs(wall2.width - wall1.width);
+        // var walls = [];
 
-        if (wall_x_dif <= 2 && wall_y_dif === wall1.height) {
-            if (wall1.width === wall2.width) {
-                wall_list[i].height += 1;
-                wall_list.splice(i + 1, 1);
-                i = i - 1;
-            } else {
-                // for (j = i + 1; j < wall_list.length - 1; j++) {
-                //     if (wall1.y + 1 === wall_list[j].y) {
-                //         walls.push(wall_list[j]);
-                //     }
-                // }
-                // for (j = 0; j < walls.length; j++) {
-                //     var wall = walls[j];
-                //     var wall_x_dif = Math.abs(wall1.x - wall.x);
-                //     if (wall_x_dif <= 2) {
-                //         wall_list[i].height += 1;
-                //         wall_list.splice(j, 1);
-                //         i = i - 1;
-                //     }
-                // }
-            }
+        if (wall_y_dif === wall1.height && wall_w_dif <= 2) {
+            wall_list[i].height += 1;
+            wall_list.splice(i + 1, 1);
+            i = i - 1;
         }
-    }
-    console.log(wall_list);
+        //  else {
+        //     for (var j = i + 1; j < wall_list.length - 1; j++) {
+        //         if (wall1.y + wall1.height + 1 === wall_list[j].y) {
+        //             walls.push(wall_list[j]);
+        //         }
+        //     }
+        //     for (var j = 0; j < walls.length; j++) {
+        //         var wall = walls[j];
+        //         var wall_x_dif = Math.abs(wall1.x - wall.x);
+        //         var wall_w_dif = Math.abs(wall1.width - wall.width);
+        //         if (wall_x_dif <= 2 && wall_w_dif <= 2) {
+        //             wall_list[i].height += 1;
+        //             wall_list.splice(j, 1);
+        //             i = i - 1;
+        //         }
+        //     }
+        // }
+    // }
 
-    // ------------------------------    
-    return wall_list;
+    wall_list.sort(function (a, b) {
+        if ((a.x + a.width) < (b.x + b.width)) return 1;
+        if ((a.x + a.width) > (b.x + b.width)) return -1;
+        if (a.y < b.y) return -1;
+        if (a.y > b.y) return 1;
+        return 0;
+    });
+
+    for (var i = 0; i < wall_list.length - 1; i++) {
+        var wall1 = wall_list[i];
+        var wall2 = wall_list[i + 1];
+        var wall1_area = wall1.width * wall1.height;
+        var wall_y_dif = wall2.y - wall1.y;
+        var wall_h_dif = wall1.height - wall2.height;
+        var wall_w_dif = Math.abs(wall1.width - wall2.width);
+        if (wall_y_dif === wall1.height && wall_w_dif <= 2) {
+            if (wall_w_dif !== 0 && wall_h_dif >= 0) {
+                wall_list[i].width = wall1.width;
+            } else{
+                wall_list[i].width = wall2.width;
+            }
+            wall_list[i].height += wall2.height;
+            wall_list.splice(i + 1, 1);
+            i = i - 1;
+        }
+        // if (wall1_area <= CANVAS_SMALL_LIMIT) {
+        //     wall_list.splice(i, 1);            
+        // }        
+    }
+}
+
+console.log(wall_list);
+
+// ------------------------------    
+return wall_list;
 }
 
 function displaySVG(parts_list) {
