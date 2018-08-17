@@ -8,7 +8,8 @@ const CHECK_DISTANCE = 3;
 const MAGNIFICATION = 3;
 const CANVAS_SMALL_LIMIT = CANVAS_SIZE / 100 * 2
 const CAMERA_MOVE_UNIT = 10;
-const PLAYER_MOVE_UNIT = 1;
+const PLAYER_MOVE_UNIT = 5;
+const PLAYER_SPEED = 5;
 
 var image;
 // var player = {};
@@ -21,6 +22,9 @@ var players = [];
 // var player_size = 0;
 var wall_width = 0;
 var camera_position = { x: 100, y: 150, z: 100 }
+var player_pass = [];
+var first_play = true;
+var player_num
 
 $(function () {
     var finish = false;
@@ -123,35 +127,134 @@ $(function () {
         createPlayer();
     });
 
+    $('#exe').on('click', function () {
+        moveSVGPlayer();
+    });
+
     function createPlayer() {
+        var id = 'player' + 0;
         var x = 3;
-        var y = 7;
+        var y = 16;
         var size = 3;
+        var pass_idx = 999;
+        var direction = '';
         var root = [];
 
-        var player = new Player(x, y, size, root);
+        var player = players[0];
+        var player = new Player(id, x, y, size, pass_idx, direction, root);
         players.push(player);
-        addSvgRectElement('svg_meiro', x, y, size, size, 'yellow');
-        a_meiro
-        // str = '<rect x=' + player.x * MAGNIFICATION + ' y=' + player.y * MAGNIFICATION + ' width=' + player.size * MAGNIFICATION + ' height=' + player.size * MAGNIFICATION + ' fill="yellow"></rect>';
-
-        // $('#svg_meiro').append(str);
+        addSvgRectElement(id, x, y, size, size, 'yellow');
+        addAframeElement(id, x, y, size, 'yellow');
     }
+
+    function moveSVGPlayer() {
+        if (first_play) {
+            var player = players[0];
+            for (var i = 0; i < player_pass.length; i++) {
+                var pass = player_pass[i];
+                if (player.y === pass.y && pass.x <= player.x && (pass.x + pass.width) >= player.x) {
+                    if (pass.width >= pass.height) {
+                        player.direction = 'east';
+                        player.x += PLAYER_SPEED;
+                        player.pass_idx = i;
+                        break;
+                    } else {
+                        player.direction = 'south';
+                        player.y -= PLAYER_SPEED;
+                        player.pass_idx = i;
+                        break;
+                    }
+                }
+            }
+            $('#a_' + player.id).attr('position', player.x + ' ' + 2 + ' ' + player.y);
+            first_play = false;
+        } else {
+            for (var i = 0; i < players.length; i++) {
+                var player = players[i];
+                for (var j = 0; j < player_pass.length; j++) {
+                    var pass = player_pass[j];
+                    if (player.pass_idx === j) {
+                        switch (player.direction) {
+                            case 'north':
+                                player.y -= PLAYER_SPEED;
+                                break;
+                            case 'east':
+                                player.x += PLAYER_SPEED;
+                                break;
+                            case 'south':
+                                player.y += PLAYER_SPEED;
+                                break;
+                            case 'west':
+                                player.x -= PLAYER_SPEED;
+                                break;
+                            default:
+                                console.log('error btn= ' + player);
+                        }
+                        $('#a_' + player.id).attr('position', player.x + ' ' + 2 + ' ' + player.y);
+                    }
+                    if (player.idx !== j && player.y === player_pass[j].y
+                        && player.x >= pass.x && player.x <= (pass.x + pass.width)) {
+                        var left_dif = player.x - pass.x;
+                        var right_dif = pass.x + pass.width - player.x;
+                        // constructor(x, y, size, pass_idx, direction, root) {
+                        if (left_dif > right_dif) {
+                            player_num += 1;
+                            var player_id = 'player' + player_num;
+                            var new_player = new Player(player_id, player.x - PLAYER_SPEED, player.y, size, j, "west", "");
+                            players.push(new_player);
+                            addSvgRectElement(new_player.id, new_player.x, new_player.y, new_player.size, new_player.size, 'yellow');
+                            addAframeElement(new_player.id, new_player.x, new_player.y, new_player.size, 'yellow');
+                        } else if (left_dif < right_dif) {
+                            player_num += 1;
+                            var player_id = 'player' + player_num;
+                            var new_player = new Player(player_id, player.x + PLAYER_SPEED, player.y, size, j, "east", "");
+                            players.push(new_player);
+                            addSvgRectElement(new_player.id, new_player.x, new_player.y, new_player.size, new_player.size, 'yellow');
+                            addAframeElement(new_player.id, new_player.x, new_player.y, new_player.size, 'yellow');
+                        }
+                    } else if (player.idx !== j && player.x === player_pass[j].x
+                        && player.y >= pass.y && player.y <= (pass.y + pass.height)) {
+                        var up_dif = player.y - pass.y;
+                        var down_dif = pass.y + pass.height - player.y;
+                        if (up_dif > down_dif) {
+                            player_num += 1;
+                            var player_id = 'player' + player_num;
+                            var new_player = new Player(player.x, player.y - PLAYER_SPEED, size, j, "north", "");
+                            players.push(new_player);
+                            addSvgRectElement(new_player.id, new_player.x, new_player.y, new_player.size, new_player.size, 'yellow');
+                            addAframeElement(new_player.id, new_player.x, new_player.y, new_player.size, 'yellow');
+                        } else if (up_dif < down_dif) {
+                            player_num += 1;
+                            var player_id = 'player' + player_num;
+                            var new_player = new Player(player.x, player.y + PLAYER_SPEED, size, j, "south", "");
+                            players.push(new_player);
+                            addSvgRectElement(new_player.id, new_player.x, new_player.y, new_player.size, new_player.size, 'yellow');
+                            addAframeElement(new_player.id, new_player.x, new_player.y, new_player.size, 'yellow');
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+
+
 
     function addSvgRectElement(id, x, y, width, height, color) {
         var rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        rect.setAttribute("id", "s_" + id);
         rect.setAttribute("x", x * MAGNIFICATION);
         rect.setAttribute("y", y * MAGNIFICATION);
         rect.setAttribute("width", width * MAGNIFICATION);
         rect.setAttribute("height", height * MAGNIFICATION);
         rect.setAttribute("fill", color);
-        $('#' + id).append(rect);
+        $('#svg_meiro').append(rect);
     }
 
-    // function addAframeElement(id, x, y, width, height, color){
-    //     var str = '<a-box width= ' + parts.width + ' height="8"' + ' depth=' + parts.height + ' position="' + (parts.x + parts.width / 2) + ' 2 ' + (parts.y + parts.height / 2) + '" color="blue"></a-box>';
-    //     $('#' + id).append(rect);
-    // }
+    function addAframeElement(id, x, y, radius, color) {
+        var str = '<a-sphere id=a_' + id + ' color="' + color + '" radius="' + radius + '" position="' + x + ' 2 ' + y + '" ></a-sphere>';
+        $('#a_meiro').append(str);
+    }
 
     $('#auto').on('click', function () {
         auto = true;
@@ -227,7 +330,7 @@ function moveCamera_btn(btn) {
 };
 
 function moveP_btn(btn) {
-    var position = $('#sphere').attr('position');
+    var position = $('#player').attr('position');
     switch (btn) {
         case 'p_up':
             position.z -= PLAYER_MOVE_UNIT;
@@ -1105,7 +1208,6 @@ function makePartsList(map) {
         var pass2 = pass_list[i + 1];
         var pass_y_dif = pass2.y - pass1.y;
         var pass_w_dif = Math.abs(pass2.width - pass1.width);
-        // var passs = [];
 
         if (pass_y_dif === pass1.height && pass_w_dif <= 2) {
             pass_list[i].height += 1;
@@ -1114,22 +1216,34 @@ function makePartsList(map) {
         }
     }
 
+    pass_list.sort(function (a, b) {
+        if ((a.x + a.width) < (b.x + b.width)) return 1;
+        if ((a.x + a.width) > (b.x + b.width)) return -1;
+        if (a.y < b.y) return -1;
+        if (a.y > b.y) return 1;
+        return 0;
+    });
+
     for (var i = 0; i < pass_list.length - 1; i++) {
         var pass1 = pass_list[i];
         var pass2 = pass_list[i + 1];
-        var pass_y_dif = pass2.y - pass1.y;
-        var pass_w_dif = Math.abs(pass2.width - pass1.width);
         var pass1_area = pass1.width * pass1.height;
-
+        var pass_y_dif = pass2.y - pass1.y;
+        var pass_h_dif = pass1.height - pass2.height;
+        var pass_w_dif = Math.abs(pass1.width - pass2.width);
+        if (pass_y_dif === pass1.height && pass_w_dif <= 2) {
+            if (pass_w_dif !== 0 && pass1.width >= 0) {
+                pass_list[i].width = pass1.width;
+            } else {
+                pass_list[i].width = pass2.width;
+            }
+            pass_list[i].height += pass2.height;
+            pass_list.splice(i + 1, 1);
+            i = i - 1;
+        }
         if (pass1_area <= CANVAS_SMALL_LIMIT) {
             pass_list.splice(i, 1);
             i = i - 1;
-        } else {
-            if (pass_y_dif === pass1.height && pass_w_dif <= 2) {
-                pass_list[i].height += 1;
-                pass_list.splice(i + 1, 1);
-                i = i - 1;
-            }
         }
     }
 
@@ -1144,9 +1258,11 @@ function makePartsList(map) {
             pass.x = pass.x + pass.width / 2;
             pass.width = 1;
             pass.y = pass.y - (avg / 2);
-            pass.height = pass.height + avg;
+            pass.height = pass.height + avg * 1.5;
         }
     }
+
+    player_pass = pass_list;
 
     // return pass_list;
 
@@ -1174,7 +1290,6 @@ function makePartsList(map) {
         var wall_x_dif = wall1.x - wall2.x;
         var wall_y_dif = wall2.y - wall1.y;
         var wall_w_dif = Math.abs(wall2.width - wall1.width);
-        // var walls = [];
 
         if (wall_y_dif === wall1.height && wall_w_dif <= 2) {
             if (wall_w_dif < 0) {
@@ -1184,36 +1299,37 @@ function makePartsList(map) {
             wall_list.splice(i + 1, 1);
             i = i - 1;
         }
+    }
 
-        wall_list.sort(function (a, b) {
-            if ((a.x + a.width) < (b.x + b.width)) return 1;
-            if ((a.x + a.width) > (b.x + b.width)) return -1;
-            if (a.y < b.y) return -1;
-            if (a.y > b.y) return 1;
-            return 0;
-        });
+    wall_list.sort(function (a, b) {
+        if ((a.x + a.width) < (b.x + b.width)) return 1;
+        if ((a.x + a.width) > (b.x + b.width)) return -1;
+        if (a.y < b.y) return -1;
+        if (a.y > b.y) return 1;
+        return 0;
+    });
 
-        for (var i = 0; i < wall_list.length - 1; i++) {
-            var wall1 = wall_list[i];
-            var wall2 = wall_list[i + 1];
-            var wall1_area = wall1.width * wall1.height;
-            var wall_y_dif = wall2.y - wall1.y;
-            var wall_h_dif = wall1.height - wall2.height;
-            var wall_w_dif = Math.abs(wall1.width - wall2.width);
-            if (wall_y_dif === wall1.height && wall_w_dif <= 2) {
-                if (wall_w_dif !== 0 && wall_h_dif >= 0) {
-                    wall_list[i].width = wall1.width;
-                } else {
-                    wall_list[i].width = wall2.width;
-                }
-                wall_list[i].height += wall2.height;
-                wall_list.splice(i + 1, 1);
-                i = i - 1;
+
+    for (var i = 0; i < wall_list.length - 1; i++) {
+        var wall1 = wall_list[i];
+        var wall2 = wall_list[i + 1];
+        var wall1_area = wall1.width * wall1.height;
+        var wall_y_dif = wall2.y - wall1.y;
+        var wall_h_dif = wall1.height - wall2.height;
+        var wall_w_dif = Math.abs(wall1.width - wall2.width);
+        if (wall_y_dif === wall1.height && wall_w_dif <= 2) {
+            if (wall_w_dif !== 0 && wall1.width >= 0) {
+                wall_list[i].width = wall1.width;
+            } else {
+                wall_list[i].width = wall2.width;
             }
-            if (wall1_area <= CANVAS_SMALL_LIMIT) {
-                wall_list.splice(i, 1);
-                i = i - 1;
-            }
+            wall_list[i].height += wall2.height;
+            wall_list.splice(i + 1, 1);
+            i = i - 1;
+        }
+        if (wall1_area <= CANVAS_SMALL_LIMIT) {
+            wall_list.splice(i, 1);
+            i = i - 1;
         }
     }
 
@@ -1280,7 +1396,7 @@ function displayAFRAME(parts_list) {
             str += '<a-box width= ' + parts.width + ' height="8"' + ' depth=' + parts.height + ' position="' + (parts.x + parts.width / 2) + ' 2 ' + (parts.y + parts.height / 2) + '" color="blue"></a-box>';
         }
     }
-    str += '<a-sphere id="sphere" color="#C0C0C0" radius="3" position="3 2 14" ></a-sphere>';
+    // str += '<a-sphere id="sphere" color="#C0C0C0" radius="3" position="13 2 16" ></a-sphere>';
     str += '</a-scene>';
     $('#vr_meiro').append(str);
 }
@@ -1415,17 +1531,20 @@ var downloadCsv = (function () {
 })();
 
 class Player {
-    constructor(x, y, size, root) {
+    constructor(id, x, y, size, pass_idx, direction, root) {
+        this.id = id;
         this.x = x;
         this.y = y;
         this.size = size;
+        this.pass_idx = pass_idx;
+        this.direction = direction;
         this.root = root;
     }
-    set x(x) {
-        this._x = x;
+    set id(id) {
+        this._id = id;
     }
-    get x() {
-        return this._x;
+    get id() {
+        return this._id;
     }
     set y(y) {
         this._y = y;
@@ -1438,6 +1557,18 @@ class Player {
     }
     get size() {
         return this._size;
+    }
+    set direction(direction) {
+        this._direction = direction;
+    }
+    get direction() {
+        return this._direction;
+    }
+    set pass_idx(pass_idx) {
+        this._pass_idx = pass_idx;
+    }
+    get pass_idx() {
+        return this._pass_idx;
     }
     set root(root) {
         this._root = root;
