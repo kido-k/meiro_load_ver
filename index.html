@@ -43,13 +43,34 @@
     <div style='margin-top:10px;margin-bottom:10px;'>
         <p id="msg" class="msg"></p>
     </div>
-    <div style="display:flex">
+    <!-- <div style="display:flex"> -->
+    <div>
         <!-- <div id="meiro"></div> -->
         <div id="new_meiro"></div>
+        <div>
+            <button id="create">プレイヤー作成</button>
+            <button id="exe">実行</button>
+        </div>
         <div id="vr_meiro">
         </div>
+        <div style='display:flex'>
+            <div>
+                <button id="a_up" class="a_move">↑</button>
+                <button id="a_down" class="a_move">↓</button>
+                <button id="a_left" class="a_move">←</button>
+                <button id="a_right" class="a_move">→</button>
+                <button id="a_zmin" class="a_move">+</button>
+                <button id="a_zmout" class="a_move">-</button>
+            </div>
+            <div style='margin-left:50px;'>
+                <button id="p_up" class="p_move">↑</button>
+                <button id="p_down" class="p_move">↓</button>
+                <button id="p_left" class="p_move">←</button>
+                <button id="p_right" class="p_move">→</button>
+            </div>
+        </div>
     </div>
-    <div>
+    <div style="margin-top:20px">
         <button id="step">ステップ実行</button>
         <button id="auto">自動実行</button>
         <button id="download">ダウンロード</button>
