@@ -1,6 +1,6 @@
 
 
-const EXECUTION_INTERVAL = 10;
+const EXECUTION_INTERVAL = 50;
 const CANVAS_SIZE = 200;
 const THRESHHOLD = 150;
 const PLAYSER_SIZE_HOSEI = 1;
@@ -9,22 +9,23 @@ const MAGNIFICATION = 3;
 const CANVAS_SMALL_LIMIT = CANVAS_SIZE / 100 * 2
 const CAMERA_MOVE_UNIT = 10;
 const PLAYER_MOVE_UNIT = 5;
-const PLAYER_SPEED = 5;
+const PLAYER_SPEED = 1;
 
 var image;
 // var player = {};
 var map = [];
-var size = 0;
+// var size = 0;
 var position = {};
 var start = [];
 var end = [];
 var players = [];
-// var player_size = 0;
 var wall_width = 0;
 var camera_position = { x: 100, y: 150, z: 100 }
 var player_pass = [];
 var first_play = true;
-var player_num
+var player_num = 0;
+var player_size = 3;
+const goal = {x:95, y:97}
 
 $(function () {
     var finish = false;
@@ -47,8 +48,8 @@ $(function () {
         finish = false;
         auto = false;
         createMeiro();
+        createPlayer();
         $('#show').click();
-        $('#msg').html('スタートを指定してください');
     });
 
     $('#show').on('click', function () {
@@ -88,179 +89,17 @@ $(function () {
         }
     });
 
-    $(document).on('click', '.p', function () {
-        if (!start_flg) {
-            if (window.confirm('スタートはここでいいですか？')) {
-                start = setStartEnd(this.id);
-            }
-            if (start.length > 0) {
-                start_flg = true;
-                $('#msg').html('ゴールを指定してください');
-            }
-        } else if (!end_flg) {
-            if (window.confirm('ゴールはここでいいですか？')) {
-                end = setStartEnd(this.id);
-            }
-            if (end.length > 0) {
-                end_flg = true;
-                $('#msg').html('ゲームを開始！！');
-                player = setPlayer();
-                players.push(player);
-                goal = setGoal();
-            }
-        }
-        displayLoad(size, map, player);
-    });
+    // $('#create').on('click', function () {
+    //     createPlayer();
+    // });
 
     $('#step').on('click', function () {
-        if (!finish) {
-            var new_players = createAvatar();
-            finish = displayLoad_bunshin(size, map, new_players);
-            for (var i = 0; i < new_players.length; i++) {
-                var new_player = new_players[i];
-                finish = judgeGoal(new_player);
-            }
-        }
+        moveAframePlayer();
     });
-
-    $('#create').on('click', function () {
-        createPlayer();
-    });
-
-    $('#exe').on('click', function () {
-        moveSVGPlayer();
-    });
-
-    function createPlayer() {
-        var id = 'player' + 0;
-        var x = 3;
-        var y = 16;
-        var size = 3;
-        var pass_idx = 999;
-        var direction = '';
-        var root = [];
-
-        var player = players[0];
-        var player = new Player(id, x, y, size, pass_idx, direction, root);
-        players.push(player);
-        addSvgRectElement(id, x, y, size, size, 'yellow');
-        addAframeElement(id, x, y, size, 'yellow');
-    }
-
-    function moveSVGPlayer() {
-        if (first_play) {
-            var player = players[0];
-            for (var i = 0; i < player_pass.length; i++) {
-                var pass = player_pass[i];
-                if (player.y === pass.y && pass.x <= player.x && (pass.x + pass.width) >= player.x) {
-                    if (pass.width >= pass.height) {
-                        player.direction = 'east';
-                        player.x += PLAYER_SPEED;
-                        player.pass_idx = i;
-                        break;
-                    } else {
-                        player.direction = 'south';
-                        player.y -= PLAYER_SPEED;
-                        player.pass_idx = i;
-                        break;
-                    }
-                }
-            }
-            $('#a_' + player.id).attr('position', player.x + ' ' + 2 + ' ' + player.y);
-            first_play = false;
-        } else {
-            for (var i = 0; i < players.length; i++) {
-                var player = players[i];
-                for (var j = 0; j < player_pass.length; j++) {
-                    var pass = player_pass[j];
-                    if (player.pass_idx === j) {
-                        switch (player.direction) {
-                            case 'north':
-                                player.y -= PLAYER_SPEED;
-                                break;
-                            case 'east':
-                                player.x += PLAYER_SPEED;
-                                break;
-                            case 'south':
-                                player.y += PLAYER_SPEED;
-                                break;
-                            case 'west':
-                                player.x -= PLAYER_SPEED;
-                                break;
-                            default:
-                                console.log('error btn= ' + player);
-                        }
-                        $('#a_' + player.id).attr('position', player.x + ' ' + 2 + ' ' + player.y);
-                    }
-                    if (player.idx !== j && player.y === player_pass[j].y
-                        && player.x >= pass.x && player.x <= (pass.x + pass.width)) {
-                        var left_dif = player.x - pass.x;
-                        var right_dif = pass.x + pass.width - player.x;
-                        // constructor(x, y, size, pass_idx, direction, root) {
-                        if (left_dif > right_dif) {
-                            player_num += 1;
-                            var player_id = 'player' + player_num;
-                            var new_player = new Player(player_id, player.x - PLAYER_SPEED, player.y, size, j, "west", "");
-                            players.push(new_player);
-                            addSvgRectElement(new_player.id, new_player.x, new_player.y, new_player.size, new_player.size, 'yellow');
-                            addAframeElement(new_player.id, new_player.x, new_player.y, new_player.size, 'yellow');
-                        } else if (left_dif < right_dif) {
-                            player_num += 1;
-                            var player_id = 'player' + player_num;
-                            var new_player = new Player(player_id, player.x + PLAYER_SPEED, player.y, size, j, "east", "");
-                            players.push(new_player);
-                            addSvgRectElement(new_player.id, new_player.x, new_player.y, new_player.size, new_player.size, 'yellow');
-                            addAframeElement(new_player.id, new_player.x, new_player.y, new_player.size, 'yellow');
-                        }
-                    } else if (player.idx !== j && player.x === player_pass[j].x
-                        && player.y >= pass.y && player.y <= (pass.y + pass.height)) {
-                        var up_dif = player.y - pass.y;
-                        var down_dif = pass.y + pass.height - player.y;
-                        if (up_dif > down_dif) {
-                            player_num += 1;
-                            var player_id = 'player' + player_num;
-                            var new_player = new Player(player.x, player.y - PLAYER_SPEED, size, j, "north", "");
-                            players.push(new_player);
-                            addSvgRectElement(new_player.id, new_player.x, new_player.y, new_player.size, new_player.size, 'yellow');
-                            addAframeElement(new_player.id, new_player.x, new_player.y, new_player.size, 'yellow');
-                        } else if (up_dif < down_dif) {
-                            player_num += 1;
-                            var player_id = 'player' + player_num;
-                            var new_player = new Player(player.x, player.y + PLAYER_SPEED, size, j, "south", "");
-                            players.push(new_player);
-                            addSvgRectElement(new_player.id, new_player.x, new_player.y, new_player.size, new_player.size, 'yellow');
-                            addAframeElement(new_player.id, new_player.x, new_player.y, new_player.size, 'yellow');
-                        }
-                    }
-                }
-            }
-        }
-
-    }
-
-
-
-    function addSvgRectElement(id, x, y, width, height, color) {
-        var rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        rect.setAttribute("id", "s_" + id);
-        rect.setAttribute("x", x * MAGNIFICATION);
-        rect.setAttribute("y", y * MAGNIFICATION);
-        rect.setAttribute("width", width * MAGNIFICATION);
-        rect.setAttribute("height", height * MAGNIFICATION);
-        rect.setAttribute("fill", color);
-        $('#svg_meiro').append(rect);
-    }
-
-    function addAframeElement(id, x, y, radius, color) {
-        var str = '<a-sphere id=a_' + id + ' color="' + color + '" radius="' + radius + '" position="' + x + ' 2 ' + y + '" ></a-sphere>';
-        $('#a_meiro').append(str);
-    }
 
     $('#auto').on('click', function () {
         auto = true;
-        if (auto) {
-            searchGoal();
-        }
+        searchGoal();
     });
 
     $('#download').on('click', function () {
@@ -271,37 +110,170 @@ $(function () {
 
     function searchGoal() {
         if (!finish) {
-            var new_players = createAvatar();
-            finish = displayLoad_bunshin(size, map, new_players);
-            for (var i = 0; i < new_players.length; i++) {
-                var new_player = new_players[i];
-                finish = judgeGoal(new_player);
-            }
+            moveAframePlayer();
+            finish = judgeGoal();
         }
         if (auto) {
             setTimeout(function () { searchGoal() }, EXECUTION_INTERVAL);
         }
     }
 
-    function createAvatar() {
-        const new_players = [];
+    function judgeGoal() {
         for (var i = 0; i < players.length; i++) {
-            const player = players[i];
-            const movelist = checkDirection(map, player, player.pre_move)
-            for (var n = 0; n < movelist.length; n++) {
-                var new_player = { ...player };
-                move = movelist[n];
-                new_player = movePlayer(map, new_player, move);
-                rows.push(new_player.row);
-                clms.push(new_player.clm);
-                new_players.push(new_player);
-            };
-        }
-        players = new_players;
-        return new_players;
+            var player = players[i]; 
+            if (player.x === goal.x && player.y === goal.y) {
+                console.log('GameClear');
+                // displayLoadtoGoal(player, size, map);    
+                return true;
+            }
+        };
+        return false;
     }
-
 });
+
+function createPlayer() {
+    var id = 'player' + 0;
+    var x = 3;
+    var y = 16;
+    player_size = 3;
+    var pass_idx = 999;
+    var direction = '';
+    var distance = 0;
+    var root = [];
+    // var player = players[0];
+    var player = new Player(id, x, y, player_size, pass_idx, direction, distance, root);
+    players.push(player);
+    // addSvgRectElement(id, x, y, size, size, 'yellow');
+    addAframeElement(id, x, y, player_size, '#C0C0C0');
+}
+
+
+
+function moveAframePlayer() {
+    if (first_play) {
+        var player = players[0];
+        for (var i = 0; i < player_pass.length; i++) {
+            var pass = player_pass[i];
+            if (player.y === pass.y && pass.x <= player.x && (pass.x + pass.width) >= player.x) {
+                if (pass.width >= pass.height) {
+                    player.direction = 'east';
+                    player.x += PLAYER_SPEED;
+                    player.pass_idx = i;
+                    break;
+                } else {
+                    player.direction = 'south';
+                    player.y -= PLAYER_SPEED;
+                    player.pass_idx = i;
+                    break;
+                }
+            }
+        }
+        $('#a_' + player.id).attr('position', player.x + ' ' + 2 + ' ' + player.y);
+        first_play = false;
+    } else {
+        for (var i = 0; i < players.length; i++) {
+            var player = players[i];
+            for (var j = 0; j < player_pass.length; j++) {
+                var pass = player_pass[j];
+                if (player.pass_idx === j) {
+                    switch (player.direction) {
+                        case 'north':
+                            if (player.y >= pass.y) {
+                                player.y -= PLAYER_SPEED;
+                            } else {
+                                $('#a_' + player.id).remove();
+                            }
+                            break;
+                        case 'east':
+                            if (player.x <= (pass.x + pass.width)) {
+                                player.x += PLAYER_SPEED;
+                            } else {
+                                $('#a_' + player.id).remove();
+                            }
+                            break;
+                        case 'south':
+                            if (player.y <= (pass.y + pass.height)) {
+                                player.y += PLAYER_SPEED;
+                            } else {
+                                $('#a_' + player.id).remove();
+                            }
+                            break;
+                        case 'west':
+                            if (player.x >= pass.x) {
+                                player.x -= PLAYER_SPEED;
+                            } else {
+                                $('#a_' + player.id).remove();
+                            }
+                            break;
+                        default:
+                            console.log('error btn= ' + player);
+                    }
+                }
+                $('#a_' + player.id).attr('position', player.x + ' ' + 2 + ' ' + player.y);
+
+                if (player.pass_idx !== j && player.y === pass.y
+                    && player.x >= pass.x && player.x <= (pass.x + pass.width)
+                    && (player.direction === 'north' || player.direction === 'south')) {
+                    var left_dif = player.x - pass.x;
+                    var right_dif = pass.x + pass.width - player.x;
+                    if (left_dif > right_dif) {
+                        player_num += 1;
+                        var player_id = 'player' + player_num;
+                        var new_player = new Player(player_id, player.x - PLAYER_SPEED, player.y, player_size, j, "west", pass.width, "");
+                        players.push(new_player);
+                        // addSvgRectElement(new_player.id, new_player.x, new_player.y, new_player.size, new_player.size, 'yellow');
+                        addAframeElement(new_player.id, new_player.x, new_player.y, player_size, '#C0C0C0');
+                    } else if (left_dif < right_dif) {
+                        player_num += 1;
+                        var player_id = 'player' + player_num;
+                        var new_player = new Player(player_id, player.x + PLAYER_SPEED, player.y, player_size, j, "east", pass.width, "");
+                        players.push(new_player);
+                        // addSvgRectElement(new_player.id, new_player.x, new_player.y, new_player.size, new_player.size, 'yellow');
+                        addAframeElement(new_player.id, new_player.x, new_player.y, player_size, '#C0C0C0');
+                    }
+                }
+                if (player.pass_idx !== j && player.x === player_pass[j].x
+                    && player.y >= pass.y && player.y <= (pass.y + pass.height)
+                    && (player.direction === 'west' || player.direction === 'east')) {
+                    var up_dif = player.y - pass.y;
+                    var down_dif = player.y - (pass.y + pass.height);
+                    if (up_dif > 0) {
+                        player_num += 1;
+                        var player_id = 'player' + player_num;
+                        var new_player = new Player(player_id, player.x, player.y - PLAYER_SPEED, player_size, j, "north", pass.height, "");
+                        players.push(new_player);
+                        // addSvgRectElement(new_player.id, new_player.x, new_player.y, new_player.size, new_player.size, 'yellow');
+                        addAframeElement(new_player.id, new_player.x, new_player.y, player_size, '#C0C0C0');
+                    }
+                    if (down_dif < 0) {
+                        player_num += 1;
+                        var player_id = 'player' + player_num;
+                        var new_player = new Player(player_id, player.x, player.y + PLAYER_SPEED, player_size, j, "south", pass.height, "");
+                        players.push(new_player);
+                        // addSvgRectElement(new_player.id, new_player.x, new_player.y, new_player.size, new_player.size, 'yellow');
+                        addAframeElement(new_player.id, new_player.x, new_player.y, player.size, '#C0C0C0');
+                    }
+                }
+            }
+        }
+    }
+}
+
+function addSvgRectElement(id, x, y, width, height, color) {
+    var rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    rect.setAttribute("id", "s_" + id);
+    rect.setAttribute("x", x * MAGNIFICATION);
+    rect.setAttribute("y", y * MAGNIFICATION);
+    rect.setAttribute("width", width * MAGNIFICATION);
+    rect.setAttribute("height", height * MAGNIFICATION);
+    rect.setAttribute("fill", color);
+    $('#svg_meiro').append(rect);
+}
+
+function addAframeElement(id, x, y, radius, color) {
+    var str = '<a-sphere id=a_' + id + ' color="' + color + '" radius="' + radius + '" position="' + x + player_size + y + '" ></a-sphere>';
+    $('#a_meiro').append(str);
+}
 
 function moveCamera_btn(btn) {
     switch (btn) {
@@ -350,43 +322,6 @@ function moveP_btn(btn) {
     $('#sphere').attr('position', position.x + ' ' + position.y + ' ' + position.z);
 };
 
-
-function setPlayer() {
-    var pos = { row: 0, clm: 0, pre_move: "" };
-    pos.row = Number(start[0].substr(0, 2));
-    pos.clm = Number(start[0].substr(2, 2));
-
-    for (var i = 1; i < start.length; i++) {
-        var row = Number(start[i].substr(0, 2));
-        var clm = Number(start[i].substr(2, 2));
-        if (pos.row > row) {
-            pos.row = row;
-        }
-        if (pos.clm > clm) {
-            pos.clm = clm;
-        }
-    }
-    return pos;
-}
-
-function setGoal() {
-    var pos = { row: 0, clm: 0 };
-    pos.row = Number(end[0].substr(0, 2));
-    pos.clm = Number(end[0].substr(2, 2));
-
-    for (var i = 1; i < end.length; i++) {
-        var row = Number(end[i].substr(0, 2));
-        var clm = Number(end[i].substr(2, 2));
-        if (pos.row > row) {
-            pos.row = row;
-        }
-        if (pos.clm > clm) {
-            pos.clm = clm;
-        }
-    }
-    return pos;
-}
-
 function setInitial() {
     start = [];
     end = [];
@@ -408,593 +343,9 @@ function displayBtn(display) {
     }
 }
 
-function judgeGoal(player) {
-    if (player.row === goal.row && player.clm === goal.clm) {
-        console.log('GameClear');
-        console.log(player);
-        // displayLoadtoGoal(player, size, map);
-        return true;
-    };
-    return false;
-}
-
-function checkDirection(map, player, pre_move) {
-    const movelist = [];
-    switch (pre_move) {
-        case 'up':
-            if (map[player.row - 1][player.clm] === 1
-                && map[player.row - 1][player.clm + player_size] === 1) {
-                movelist.push('up');
-            }
-            if (map[player.row][player.clm - 1] = 1
-                && map[player.row][player.clm - CHECK_DISTANCE] === 1
-                && map[player.row + player_size][player.clm - 1] === 1
-                && map[player.row + player_size][player.clm - CHECK_DISTANCE] === 1
-                && (map[player.row + player_size + 1][player.clm - 1] === 0
-                    || map[player.row + player_size + 1][player.clm - CHECK_DISTANCE] === 0)
-            ) {
-                movelist.push('left');
-            }
-            if (map[player.row][player.clm + player_size + 1] === 1
-                && map[player.row][player.clm + player_size + CHECK_DISTANCE] === 1
-                && map[player.row + player_size][player.clm + player_size + 1] === 1
-                && map[player.row + player_size][player.clm + player_size + CHECK_DISTANCE] === 1
-                && (map[player.row + player_size + 1][player.clm + player_size + 1] === 0
-                    || map[player.row + player_size + 1][player.clm + player_size + CHECK_DISTANCE] === 0)
-            ) {
-                movelist.push('right');
-            }
-            break;
-        case 'left':
-            if (map[player.row - 1][player.clm] === 1
-                && map[player.row - CHECK_DISTANCE][player.clm] === 1
-                && map[player.row - 1][player.clm + player_size] === 1
-                && map[player.row - 1 - CHECK_DISTANCE][player.clm + player_size] === 1
-                && (map[player.row - 1][player.clm + player_size + 1] === 0
-                    || map[player.row - 1 - CHECK_DISTANCE][player.clm + player_size + 1] === 0)
-            ) {
-                movelist.push('up');
-            }
-            if (map[player.row][player.clm - 1] === 1
-                && map[player.row + player_size][player.clm - 1] === 1) {
-                movelist.push('left');
-            }
-            if (map[player.row + player_size + 1][player.clm] === 1
-                && map[player.row + player_size + CHECK_DISTANCE][player.clm] === 1
-                && map[player.row + player_size + 1][player.clm + player_size] === 1
-                && map[player.row + player_size + CHECK_DISTANCE][player.clm + player_size] === 1
-                && (map[player.row + player_size + 1][player.clm + player_size + 1] === 0
-                    || map[player.row + player_size + CHECK_DISTANCE][player.clm + player_size + 1] === 0)
-            ) {
-                movelist.push('down');
-            }
-            break;
-        case 'right':
-            if (map[player.row - 1][player.clm] === 1
-                && map[player.row - CHECK_DISTANCE][player.clm] === 1
-                && map[player.row - 1][player.clm + player_size] === 1
-                && map[player.row - 1 - CHECK_DISTANCE][player.clm + player_size] === 1
-                && (map[player.row - 1][player.clm - 1] === 0
-                    || map[player.row - 1 - CHECK_DISTANCE][player.clm - 1] === 0)
-            ) {
-                movelist.push('up');
-            }
-            if (map[player.row][player.clm + player_size + 1] === 1
-                && map[player.row + player_size][player.clm + player_size + 1] === 1) {
-                movelist.push('right');
-            }
-            if (map[player.row + player_size + 1][player.clm] === 1
-                && map[player.row + player_size + CHECK_DISTANCE][player.clm] === 1
-                && map[player.row + player_size + 1][player.clm + player_size] === 1
-                && map[player.row + player_size + CHECK_DISTANCE][player.clm + player_size] === 1
-                && (map[player.row + player_size + 1][player.clm - 1] === 0
-                    || map[player.row + player_size + CHECK_DISTANCE][player.clm - 1] === 0)
-            ) {
-                movelist.push('down');
-            }
-            break;
-        case 'down':
-            if (map[player.row][player.clm - 1] === 1
-                && map[player.row][player.clm - CHECK_DISTANCE] === 1
-                && map[player.row + player_size][player.clm - 1] === 1
-                && map[player.row + player_size][player.clm - CHECK_DISTANCE] === 1
-                && (map[player.row - 1][player.clm - 1] === 0
-                    || map[player.row - 1][player.clm - CHECK_DISTANCE] === 0)
-            ) {
-                movelist.push('left');
-            }
-            if (map[player.row][player.clm + player_size + 1] === 1
-                && map[player.row][player.clm + player_size + CHECK_DISTANCE] === 1
-                && map[player.row + player_size][player.clm + player_size + 1] === 1
-                && map[player.row + player_size][player.clm + player_size + CHECK_DISTANCE] === 1
-                && (map[player.row - 1][player.clm + player_size + 1] === 0
-                    || map[player.row - 1][player.clm + player_size + CHECK_DISTANCE] === 0)
-            ) {
-                movelist.push('right');
-            }
-            if (map[player.row + player_size + 1][player.clm] === 1
-                && map[player.row + player_size + 1][player.clm + player_size] === 1) {
-                movelist.push('down');
-            }
-            break;
-        default:
-            if (map[player.row - 1][player.clm] === 1
-                && map[player.row - 1][player.clm + player_size] === 1
-                && pre_move !== 'down') {
-                movelist.push('up');
-            }
-            if (map[player.row][player.clm - 1] === 1
-                && map[player.row + player_size][player.clm - 1] === 1
-                && pre_move !== 'right') {
-                movelist.push('left');
-            }
-            if (map[player.row][player.clm + player_size + 1] === 1
-                && map[player.row + player_size][player.clm + player_size + 1] === 1
-                && pre_move !== 'left') {
-                movelist.push('right');
-            }
-            if (map[player.row + player_size + 1][player.clm] === 1
-                && map[player.row + player_size + 1][player.clm + player_size] === 1
-                && pre_move !== 'up') {
-                movelist.push('down');
-            }
-    }
-    return movelist;
-};
-
-function movePlayer(map, new_player, move) {
-    switch (move) {
-        case 'up':
-            if (map[new_player.row - 1][new_player.clm] === 1) {
-                new_player.row = new_player.row - 1;
-            }
-            break;
-        case 'left':
-            if (map[new_player.row][new_player.clm - 1] === 1) {
-                new_player.clm = new_player.clm - 1;
-            }
-            break;
-        case 'right':
-            if (map[new_player.row][new_player.clm + 1] === 1) {
-                new_player.clm = new_player.clm + 1;
-            } break;
-        case 'down':
-            if (map[new_player.row + 1][new_player.clm] === 1) {
-                new_player.row = new_player.row + 1;
-            } break;
-        default:
-            console.log('error move= ' + move);
-    }
-    new_player.pre_move = move;
-    return new_player;
-};
-
-function movePlayer_btn(map, player, btn) {
-    switch (btn) {
-        case 'up':
-            if (map[player.row - 1][player.clm] === 1
-                && map[player.row - 1][player.clm + player_size] === 1) {
-                player.row = player.row - 1;
-            }
-            break;
-        case 'left':
-            if (map[player.row][player.clm - 1] === 1
-                && map[player.row + player_size][player.clm - 1] === 1) {
-                player.clm = player.clm - 1;
-            }
-            break;
-        case 'right':
-            if (map[player.row][player.clm + player_size + 1] === 1
-                && map[player.row + player_size][player.clm + player_size + 1] === 1) {
-                player.clm = player.clm + 1;
-            }
-            break;
-        case 'down':
-            if (map[player.row + player_size + 1][player.clm] === 1
-                && map[player.row + player_size + 1][player.clm + player_size] === 1) {
-                player.row = player.row + 1;
-            }
-            break;
-        default:
-            console.log('error btn= ' + btn);
-    }
-    return player;
-};
-
-function movePlayer_key(map, player, key) {
-    switch (key) {
-        case 38: // Key[↑]
-            if (map[player.row - 1][player.clm] === 1
-                && map[player.row - 1][player.clm + player_size] === 1) {
-                player.row = player.row - 1;
-            }
-            break;
-        case 37: // Key[←]
-            if (map[player.row][player.clm - 1] === 1
-                && map[player.row + player_size][player.clm - 1] === 1) {
-                player.clm = player.clm - 1;
-            }
-            break;
-        case 39: // Key[→]
-            if (map[player.row][player.clm + player_size + 1] === 1
-                && map[player.row + player_size][player.clm + player_size + 1] === 1) {
-                player.clm = player.clm + 1;
-            }
-            break;
-        case 40: // Key[↓]
-            if (map[player.row + player_size + 1][player.clm] === 1
-                && map[player.row + player_size + 1][player.clm + player_size] === 1) {
-                player.row = player.row + 1;
-            }
-            break;
-        default:
-            console.log('error key= ' + key);
-    }
-    return player;
-};
-
 function showBtn() {
     $('#btn').css({ display: 'inline-block' });
     $('#btn_auto').css({ display: 'inline-block' });
-}
-
-function displayLoad(size, map, player) {
-    $('#meiro').empty();
-    var str = "";
-    for (var i = 0; i < size; i++) {
-        var str_i = String(getdoubleDigestNumer(i));
-        const line = map[i];
-        const length = line.length;
-        str += '<div class="block">';
-        for (var n = 0; n < length; n++) {
-            var str_n = String(getdoubleDigestNumer(n));
-            if (line[n] === 1) {
-                if (i === player.row && n === player.clm
-                    || i === player.row && n === player.clm + player_size
-                    || i === player.row + player_size && n === player.clm
-                    || i === player.row + player_size && n === player.clm + player_size) {
-                    str += '<div ' + 'id=id' + str_i + str_n + ' class="p z">';
-                } else {
-                    str += '<div ' + 'id=id' + str_i + str_n + ' class="p">';
-                }
-            } else {
-                str += '<div ' + 'id=id' + str_i + str_n + ' class="w">';
-            }
-
-
-            str += '</div>';
-        }
-        str += '</div>';
-        $('#meiro').append(str);
-        str = "";
-    }
-    for (var j = 0; j < start.length; j++) {
-        $('#id' + start[j]).addClass('s');
-    }
-    for (var j = 0; j < end.length; j++) {
-        $('#id' + end[j]).addClass('e');
-    }
-}
-
-function displayLoad_bunshin(size, map, players) {
-    $('#meiro').empty();
-    if (players.length === 0) {
-        console.log('ゴールできませんでした');
-        return true;
-    }
-    var str = "";
-    for (var i = 0; i < size; i++) {
-        var str_i = String(getdoubleDigestNumer(i));
-        const line = map[i];
-        const length = line.length;
-        str += '<div class="block">';
-        for (var n = 0; n < length; n++) {
-            var str_n = String(getdoubleDigestNumer(n));
-            if (line[n] === 1) {
-                //playerがいる場所
-                for (var j = 0; j < players.length; j++) {
-                    var player = players[j];
-                    var str_ply = '';
-                    if (i === player.row && n === player.clm
-                        || i === player.row && n === player.clm + player_size
-                        || i === player.row + player_size && n === player.clm
-                        || i === player.row + player_size && n === player.clm + player_size) {
-                        str_ply = '<div ' + 'id=id' + str_i + str_n + ' class="p z">';
-                        break;
-                    } else {
-                        str_ply = '<div ' + 'id=id' + str_i + str_n + ' class="p">';
-                    }
-                }
-                str += str_ply;
-            } else {
-                str += '<div ' + 'id=id' + str_i + str_n + ' class="w">';
-            }
-            str += '</div>';
-        }
-        str += '</div>';
-        $('#meiro').append(str);
-        str = "";
-    }
-    for (var j = 0; j < start.length; j++) {
-        $('#id' + start[j]).addClass('s');
-    }
-    for (var j = 0; j < end.length; j++) {
-        $('#id' + end[j]).addClass('e');
-    }
-}
-
-function setStartEnd(click_id) {
-    var list = [];
-    // var pos = { row: 0, clm: 0 };
-    //クリックしたポジション
-    var pos_row = Number(click_id.substr(2, 2));
-    var pos_clm = Number(click_id.substr(4, 2));
-
-    //8方向の壁までの距離をチェック
-    var dist = { north: 0, north_east: 0, east: 0, south_east: 0, south: 0, south_west: 0, west: 0, north_west: 0 };
-
-    //北
-    for (var i = 1; i < 100; i++) {
-        if (map[pos_row - i][pos_clm] === 1) {
-            dist.north = i;
-        } else {
-            break;
-        }
-    }
-
-    //北東
-    for (var i = 1; i < 100; i++) {
-        if (map[pos_row - i][pos_clm + i] === 1) {
-            dist.north_east = i;
-        } else {
-            break;
-        }
-    }
-    //東
-    for (var i = 1; i < 100; i++) {
-        if (map[pos_row][pos_clm + i] === 1) {
-            dist.east = i;
-        } else {
-            break;
-        }
-    }
-    //南東
-    for (var i = 1; i < 100; i++) {
-        if (map[pos_row + i][pos_clm + i] === 1) {
-            dist.south_east = i;
-        } else {
-            break;
-        }
-    }
-    //南
-    for (var i = 1; i < 100; i++) {
-        if (map[pos_row + i][pos_clm] === 1) {
-            dist.south = i;
-        } else {
-            break;
-        }
-    }
-    //南西
-    for (var i = 1; i < 100; i++) {
-        if (map[pos_row + i][pos_clm - i] === 1) {
-            dist.south_west = i;
-        } else {
-            break;
-        }
-    }
-    //西
-    for (var i = 1; i < 100; i++) {
-        if (map[pos_row][pos_clm - i] === 1) {
-            dist.west = i;
-        } else {
-            break;
-        }
-    }
-    //北西
-    for (var i = 1; i < 100; i++) {
-        if (map[pos_row - i][pos_clm - i] === 1) {
-            dist.north_west = i;
-        } else {
-            break;
-        }
-    }
-
-    var tate = dist.north + dist.south + 1;
-    var yoko = dist.east + dist.west + 1;
-    var naname1 = dist.north_east + dist.south_west + 5;
-    var naname2 = dist.north_west + dist.south_east + 5;
-    var kijun = '';
-
-    if (tate <= yoko) {
-        if (tate <= naname1) {
-            if (tate <= naname2) {
-                kijun = 'tate';
-            } else {
-                kijun = 'naname2';
-            }
-        } else {
-            if (naname1 <= naname2) {
-                kijun = 'naname1';
-            } else {
-                kijun = 'naname2';
-            }
-        }
-    } else {
-        if (yoko <= naname1) {
-            if (yoko <= naname2) {
-                kijun = 'yoko';
-            } else {
-                kijun = 'naname2';
-            }
-        } else {
-            if (naname1 <= naname2) {
-                kijun = 'naname1';
-            } else {
-                kijun = 'naname2';
-            }
-        }
-    }
-
-    switch (kijun) {
-        case 'tate':
-            if (player_size === 0 && tate > 1) {
-                player_size = tate - PLAYSER_SIZE_HOSEI;
-            } else if (player_size === 0) {
-                player_size = tate;
-            }
-            for (var j = 0; j < tate; j++) {
-                list.push(createPositionId(pos_row, pos_clm + j));
-                // list = addPos(list, pos_row, pos_clm + j);
-            }
-            for (var i = 1; i < 100; i++) {
-                if (map[pos_row - i][pos_clm] === 1) {
-                    list.push(createPositionId(pos_row - i, pos_clm));
-                    // list = addPos(list, pos_row - i, pos_clm);
-                    for (var j = 1; j < tate; j++) {
-                        list.push(createPositionId(pos_row - i, pos_clm + j));
-                        // list = addPos(list, pos_row - i, pos_clm + j);
-                    }
-                } else {
-                    break;
-                }
-            }
-            for (var i = 1; i < 100; i++) {
-                if (map[pos_row + i][pos_clm] === 1) {
-                    list.push(createPositionId(pos_row + i, pos_clm));
-                    // list = addPos(list, pos_row + i, pos_clm);
-                    for (var j = 1; j < tate; j++) {
-                        list.push(createPositionId(pos_row + i, pos_clm + j));
-                        // list = addPos(list, pos_row + i, pos_clm + j);
-                    }
-                } else {
-                    break;
-                }
-            }
-            break;
-        case 'yoko':
-            if (yoko > 1 && player_size === 0) {
-                player_size = yoko - PLAYSER_SIZE_HOSEI;
-            } else if (player_size === 0) {
-                player_size = yoko;
-            }
-            for (var j = 0; j < yoko; j++) {
-                list.push(createPositionId(pos_row + j, pos_clm));
-                // list = addPos(list, pos_row + j, pos_clm);
-            }
-            for (var i = 1; i < 100; i++) {
-                if (map[pos_row][pos_clm - i] === 1) {
-                    list.push(createPositionId(pos_row, pos_clm - i));
-                    // list = addPos(list, pos_row, pos_clm - i);
-                    for (var j = 1; j < yoko; j++) {
-                        list.push(createPositionId(pos_row + j, pos_clm - i));
-                        // list = addPos(list, pos_row + j, pos_clm - i);
-                    }
-                } else {
-                    break;
-                }
-            }
-            for (var i = 1; i < 100; i++) {
-                if (map[pos_row][pos_clm + i] === 1) {
-                    list.push(createPositionId(pos_row, pos_clm + i));
-                    // list = addPos(list, pos_row, pos_clm + i);
-                    for (var j = 1; j < yoko; j++) {
-                        list.push(createPositionId(pos_row + j, pos_clm + i));
-                        // list = addPos(list, pos_row + j, pos_clm + i);
-                    }
-                } else {
-                    break;
-                }
-            }
-            break;
-        case 'naname1':
-            alert('もう一度選択してください');
-            console.log('tate:' + tate);
-            console.log('yoko:' + yoko);
-            console.log('naname1:' + naname1);
-            console.log('naname2:' + naname2);
-            console.log('北東:' + dist.north_east);
-            console.log('南西:' + dist.south_west);
-            break;
-
-            console.log('北東:' + dist.north_east);
-            console.log('南西:' + dist.south_west);
-
-            //北側を塗りつぶし
-            for (var i = 0; i < dist.north_east + 1; i++) {
-                //東側を塗りつぶし
-                for (var j = 0; j < dist.north_east + 1; j++) {
-                    // list.push(createPositionId(pos_row - i, pos_clm - j));
-                }
-                //西側を塗りつぶし
-                for (var j = 0; j < dist.south_west + 1; j++) {
-                    // list.push(createPositionId(pos_row - i, pos_clm - j));
-                }
-            }
-
-            //南側を塗りつぶし
-            for (var i = 1; i < dist.south_west + 1; i++) {
-                //東側を塗りつぶし
-                for (var j = 0; j < dist.north_east + 1; j++) {
-                    // list.push(createPositionId(pos_row + i, pos_clm - j));
-                }
-                //西側を塗りつぶし
-                for (var j = 0; j < dist.south_west + 1; j++) {
-                    // list.push(createPositionId(pos_row + i, pos_clm - j));
-                }
-            }
-
-            break;
-        case 'naname2':
-            alert('もう一度選択してください');
-            console.log('tate:' + tate);
-            console.log('yoko:' + yoko);
-            console.log('naname1:' + naname1);
-            console.log('naname2:' + naname2);
-            break;
-            console.log('北西:' + dist.north_west);
-            console.log('南東:' + dist.south_east);
-
-            //北側を塗りつぶし
-            for (var i = 0; i < dist.north_west + 1; i++) {
-                //東側を塗りつぶし
-                for (var j = 0; j < dist.south_east + 1; j++) {
-                    // list.push(createPositionId(pos_row - i, pos_clm - j));
-                }
-                //西側を塗りつぶし
-                for (var j = 0; j < dist.north_west + 1; j++) {
-                    // list.push(createPositionId(pos_row - i, pos_clm - j));
-                }
-            }
-
-            //南側を塗りつぶし
-            for (var i = 1; i < dist.south_east + 1; i++) {
-                //東側を塗りつぶし
-                for (var j = 0; j < dist.south_east + 1; j++) {
-                    // list.push(createPositionId(pos_row + i, pos_clm - j));
-                }
-                //西側を塗りつぶし
-                for (var j = 0; j < dist.north_west + 1; j++) {
-                    // list.push(createPositionId(pos_row + i, pos_clm - j));
-                }
-            }
-            break;
-        default:
-            console.log('error');
-    }
-
-    // console.log('tate:' + tate);
-    // console.log('yoko:' + yoko);
-    // console.log('naname1:' + naname1);
-    // console.log('naname2:' + naname2);
-
-    // console.log(list);
-    return list;
-}
-
-function addPos(list, pos_row, pos_clm) {
-    var pos = { row: pos_row, clm: pos_clm };
-    list.push(pos);
-    return list;
 }
 
 function shuffleList(array) {
@@ -1120,7 +471,7 @@ function processImageData() {
         displayAFRAME(parts_list);
 
         // console.log(map);
-        size = map.length;
+        // size = map.length;
         // displayLoad(size, map, player)
     }
     $('#btn').css({ display: 'inline' });
@@ -1252,15 +603,55 @@ function makePartsList(map) {
     for (var i = 0; i < pass_list.length; i++) {
         var pass = pass_list[i];
         if (pass.width > pass.height) {
-            pass.y = pass.y + pass.height / 2;
+            pass.y = Math.ceil(pass.y + pass.height / 2);
             pass.height = 1;
         } else {
-            pass.x = pass.x + pass.width / 2;
+            pass.x = Math.ceil(pass.x + pass.width / 2);
             pass.width = 1;
-            pass.y = pass.y - (avg / 2);
-            pass.height = pass.height + avg * 1.5;
+            pass.y = Math.ceil(pass.y - (avg / 2));
+            pass.height = Math.ceil(pass.height + avg * 1.8);
         }
     }
+
+    pass_list.sort(function (a, b) {
+        if (a.x < b.x) return -1;
+        if (a.x > b.x) return 1;
+        if (a.y < b.y) return -1;
+        if (a.y > b.y) return 1;
+        return 0;
+    });
+
+    for (var i = 0; i < pass_list.length - 1; i++) {
+        var pass1 = pass_list[i];
+        var pass2 = pass_list[i + 1];
+        if (pass1.x === pass2.x && pass1.width === 1 && pass2.width === 1
+            && pass1.y <= pass2.y && pass2.y <= (pass1.y + pass1.height)) {
+            pass1.height = pass2.y + pass2.height - pass1.y;
+            pass_list.splice(i + 1, 1);
+            i = i - 1;
+        }
+    }
+
+    // pass_list.sort(function (a, b) {
+    //     if (a.y < b.y) return -1;
+    //     if (a.y > b.y) return 1;
+    //     if (a.x < b.x) return -1;
+    //     if (a.x > b.x) return 1;
+    //     return 0;
+    // });
+
+
+    // for (var i = 0; i < pass_list.length - 1; i++) {
+    //     var pass1 = pass_list[i];
+    //     var pass2 = pass_list[i + 1];
+    //     if (pass1.height === 1 && pass1.x <= pass2.x && pass2.x <= (pass1.x + pass1.width)) {
+    //         pass1.x = pass2.x + pass2.width;
+    //         pass_list.splice(i + 1, 1);
+    //         i = i - 1;
+    //     }
+    // }
+
+    // console.log(pass_list);
 
     player_pass = pass_list;
 
@@ -1387,11 +778,6 @@ function displayAFRAME(parts_list) {
 
     for (var i = 0; i < parts_list.length; i++) {
         var parts = parts_list[i];
-        // if (parts.type === 'pass') {
-        //     str += '<a-box width= ' + parts.width + ' height="1" depth="1" position="' + (parts.x + parts.width / 2) + ' 0 ' + parts.y + '" color="white"></a-box>';
-        // } else {
-        //     str += '<a-box width= ' + parts.width + ' height="4" depth="1" position="' + (parts.x + parts.width / 2) + ' 2 ' + parts.y + '" color="blue"></a-box>';
-        // }
         if (parts.type === 'wall') {
             str += '<a-box width= ' + parts.width + ' height="8"' + ' depth=' + parts.height + ' position="' + (parts.x + parts.width / 2) + ' 2 ' + (parts.y + parts.height / 2) + '" color="blue"></a-box>';
         }
@@ -1483,10 +869,10 @@ function snapshot() {
             red.push(red_x);
         }
     }
-    size = CANVAS_SIZE;
+    // size = CANVAS_SIZE;
     map = red;
     console.log(map);
-    displayLoad(size, map, player);
+    // displayLoad(size, map, player);
 }
 
 
@@ -1531,13 +917,14 @@ var downloadCsv = (function () {
 })();
 
 class Player {
-    constructor(id, x, y, size, pass_idx, direction, root) {
+    constructor(id, x, y, size, pass_idx, direction, distance, root) {
         this.id = id;
         this.x = x;
         this.y = y;
         this.size = size;
         this.pass_idx = pass_idx;
         this.direction = direction;
+        this.distance = distance;
         this.root = root;
     }
     set id(id) {
@@ -1563,6 +950,12 @@ class Player {
     }
     get direction() {
         return this._direction;
+    }
+    set distance(distance) {
+        this._distance = distance;
+    }
+    get distance() {
+        return this._distance;
     }
     set pass_idx(pass_idx) {
         this._pass_idx = pass_idx;

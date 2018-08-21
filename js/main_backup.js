@@ -1,25 +1,32 @@
 
 
 const EXECUTION_INTERVAL = 10;
-const CANVAS_SIZE = 100;
+const CANVAS_SIZE = 200;
 const THRESHHOLD = 150;
 const PLAYSER_SIZE_HOSEI = 1;
 const CHECK_DISTANCE = 3;
-const MAGNIFICATION = 6;
+const MAGNIFICATION = 3;
 const CANVAS_SMALL_LIMIT = CANVAS_SIZE / 100 * 2
+const CAMERA_MOVE_UNIT = 10;
+const PLAYER_MOVE_UNIT = 5;
+const PLAYER_SPEED = 1;
 
 var image;
-var player = {};
+// var player = {};
 var map = [];
 var size = 0;
 var position = {};
 var start = [];
 var end = [];
-var player_size = 0;
+var players = [];
 var wall_width = 0;
+var camera_position = { x: 100, y: 150, z: 100 }
+var player_pass = [];
+var first_play = true;
+var player_num = 0;
+var player_size = 3;
 
 $(function () {
-    var players = [];
     var finish = false;
     var auto = false;
     var display = true;
@@ -27,8 +34,6 @@ $(function () {
     var end_flg = false;
     var rows = [];
     var clms = [];
-
-    // return;
 
     dragFile();
 
@@ -61,6 +66,16 @@ $(function () {
         player = movePlayer_btn(map, player, btn);
         displayLoad(CANVAS_SIZE, map, player);
         judgeGoal(player);
+    });
+
+    $('.a_move').on('click', function () {
+        const btn = this.id;
+        player = moveCamera_btn(btn);
+    });
+
+    $('.p_move').on('click', function () {
+        const btn = this.id;
+        player = moveP_btn(btn);
     });
 
     $('html').keyup(function (e) {
@@ -108,6 +123,139 @@ $(function () {
         }
     });
 
+    $('#create').on('click', function () {
+        createPlayer();
+    });
+
+    $('#exe').on('click', function () {
+        moveSVGPlayer();
+    });
+
+    function createPlayer() {
+        var id = 'player' + 0;
+        var x = 3;
+        var y = 16;
+        player_size = 3;
+        var pass_idx = 999;
+        var direction = '';
+        var distance = 0;
+        var root = [];
+        // var player = players[0];
+        var player = new Player(id, x, y, player_size, pass_idx, direction, distance, root);
+        players.push(player);
+        // addSvgRectElement(id, x, y, size, size, 'yellow');
+        addAframeElement(id, x, y, player_size, 'yellow');
+    }
+
+    function moveSVGPlayer() {
+        if (first_play) {
+            var player = players[0];
+            for (var i = 0; i < player_pass.length; i++) {
+                var pass = player_pass[i];
+                if (player.y === pass.y && pass.x <= player.x && (pass.x + pass.width) >= player.x) {
+                    if (pass.width >= pass.height) {
+                        player.direction = 'east';
+                        player.x += PLAYER_SPEED;
+                        player.pass_idx = i;
+                        break;
+                    } else {
+                        player.direction = 'south';
+                        player.y -= PLAYER_SPEED;
+                        player.pass_idx = i;
+                        break;
+                    }
+                }
+            }
+            $('#a_' + player.id).attr('position', player.x + ' ' + 2 + ' ' + player.y);
+            first_play = false;
+        } else {
+            for (var i = 0; i < players.length; i++) {
+                var player = players[i];
+                for (var j = 0; j < player_pass.length; j++) {
+                    var pass = player_pass[j];
+                    if (player.pass_idx === j && player.x <= (pass.x + pass.width)) {
+                        switch (player.direction) {
+                            case 'north':
+                                player.y -= PLAYER_SPEED;
+                                break;
+                            case 'east':
+                                player.x += PLAYER_SPEED;
+                                break;
+                            case 'south':
+                                player.y += PLAYER_SPEED;
+                                break;
+                            case 'west':
+                                player.x -= PLAYER_SPEED;
+                                break;
+                            default:
+                                console.log('error btn= ' + player);
+                        }
+                        $('#a_' + player.id).attr('position', player.x + ' ' + 2 + ' ' + player.y);
+                        // break;
+                    }
+                    if (player.pass_idx !== j && player.y === player_pass[j].y
+                        && player.x >= pass.x && player.x <= (pass.x + pass.width)
+                        && (player.direction === 'north' || player.direction === 'south')) {
+                        var left_dif = player.x - pass.x;
+                        var right_dif = pass.x + pass.width - player.x;
+                        // constructor(x, y, size, pass_idx, direction, root) {
+                        if (left_dif > right_dif) {
+                            player_num += 1;
+                            var player_id = 'player' + player_num;
+                            var new_player = new Player(player_id, player.x - PLAYER_SPEED, player.y, size, j, "west", pass.width, "");
+                            players.push(new_player);
+                            // addSvgRectElement(new_player.id, new_player.x, new_player.y, new_player.size, new_player.size, 'yellow');
+                            addAframeElement(new_player.id, new_player.x, new_player.y, player_size, 'yellow');
+                        } else if (left_dif < right_dif) {
+                            player_num += 1;
+                            var player_id = 'player' + player_num;
+                            var new_player = new Player(player_id, player.x + PLAYER_SPEED, player.y, player_size, j, "east", pass.width, "");
+                            players.push(new_player);
+                            // addSvgRectElement(new_player.id, new_player.x, new_player.y, new_player.size, new_player.size, 'yellow');
+                            addAframeElement(new_player.id, new_player.x, new_player.y, player_size, 'yellow');
+                        }
+                    } else if (player.pass_idx !== j && player.x === player_pass[j].x
+                        && player.y >= pass.y && player.y <= (pass.y + pass.height)
+                        && (player.direction === 'west' || player.direction === 'east')) {
+                        var up_dif = player.y - pass.y;
+                        var down_dif = pass.y + pass.height - player.y;
+                        if (up_dif > down_dif) {
+                            player_num += 1;
+                            var player_id = 'player' + player_num;
+                            var new_player = new Player(player_id, player.x, player.y - PLAYER_SPEED, player_size, j, "north", pass.height, "");
+                            players.push(new_player);
+                            // addSvgRectElement(new_player.id, new_player.x, new_player.y, new_player.size, new_player.size, 'yellow');
+                            addAframeElement(new_player.id, new_player.x, new_player.y, player_size, j, 'yellow');
+                        } else if (up_dif < down_dif) {
+                            player_num += 1;
+                            var player_id = 'player' + player_num;
+                            var new_player = new Player(player_id, player.x, player.y + PLAYER_SPEED, player_size, j, "south", pass.height, "");
+                            players.push(new_player);
+                            // addSvgRectElement(new_player.id, new_player.x, new_player.y, new_player.size, new_player.size, 'yellow');
+                            addAframeElement(new_player.id, new_player.x, new_player.y, player.size, j, 'yellow', "");
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    function addSvgRectElement(id, x, y, width, height, color) {
+        var rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        rect.setAttribute("id", "s_" + id);
+        rect.setAttribute("x", x * MAGNIFICATION);
+        rect.setAttribute("y", y * MAGNIFICATION);
+        rect.setAttribute("width", width * MAGNIFICATION);
+        rect.setAttribute("height", height * MAGNIFICATION);
+        rect.setAttribute("fill", color);
+        $('#svg_meiro').append(rect);
+    }
+
+    function addAframeElement(id, x, y, radius, color) {
+        var str = '<a-sphere id=a_' + id + ' color="' + color + '" radius="' + radius + '" position="' + x + ' 2 ' + y + '" ></a-sphere>';
+        $('#a_meiro').append(str);
+    }
+
     $('#auto').on('click', function () {
         auto = true;
         if (auto) {
@@ -154,6 +302,54 @@ $(function () {
     }
 
 });
+
+function moveCamera_btn(btn) {
+    switch (btn) {
+        case 'a_up':
+            camera_position.z -= CAMERA_MOVE_UNIT;
+            break;
+        case 'a_left':
+            camera_position.x -= CAMERA_MOVE_UNIT;
+            break;
+        case 'a_right':
+            camera_position.x += CAMERA_MOVE_UNIT;
+            break;
+        case 'a_down':
+            camera_position.z += CAMERA_MOVE_UNIT;
+            break;
+        case 'a_zmin':
+            camera_position.y -= CAMERA_MOVE_UNIT;
+            break;
+        case 'a_zmout':
+            camera_position.y += CAMERA_MOVE_UNIT;
+            break;
+        default:
+            console.log('error btn= ' + btn);
+    }
+    $('#a_camera').attr('position', camera_position.x + ' ' + camera_position.y + ' ' + camera_position.z);
+};
+
+function moveP_btn(btn) {
+    var position = $('#player').attr('position');
+    switch (btn) {
+        case 'p_up':
+            position.z -= PLAYER_MOVE_UNIT;
+            break;
+        case 'p_left':
+            position.x -= PLAYER_MOVE_UNIT;
+            break;
+        case 'p_right':
+            position.x += PLAYER_MOVE_UNIT;
+            break;
+        case 'p_down':
+            position.z += PLAYER_MOVE_UNIT;
+            break;
+        default:
+            console.log('error btn= ' + btn);
+    }
+    $('#sphere').attr('position', position.x + ' ' + position.y + ' ' + position.z);
+};
+
 
 function setPlayer() {
     var pos = { row: 0, clm: 0, pre_move: "" };
@@ -904,15 +1100,6 @@ function processImageData() {
         var red = [];
         var img_data = ctx.getImageData(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
-        // for (var y = 0; y < height; y++) {
-        //     var red_x = [];
-        //     for (var x = 0; x < width; x++) {
-        //         var index = (y * CANVAS_SIZE * 4) + x * 4;
-        //         red_x.push(img_data.data[index]);
-        //     }
-        //     red.push(red_x);
-        // }
-
         for (var y = 0; y < height; y++) {
             var red_x = [];
             var val = 0;
@@ -930,7 +1117,7 @@ function processImageData() {
         map = red;
         var parts_list = makePartsList(red);
         displaySVG(parts_list);
-        // displayAFRAME(parts_list);
+        displayAFRAME(parts_list);
 
         // console.log(map);
         size = map.length;
@@ -945,6 +1132,7 @@ function makePartsList(map) {
     var parts = { x: 0, y: 0, width: 1, height: 0, type: '' }
     const parts_list = [];
 
+    // console.log(map);
     for (var y = 0; y < map.length; y++) {
         parts = { x: 0, y: y, width: 1, height: 1, type: '' }
         const map_x = map[y];
@@ -960,7 +1148,7 @@ function makePartsList(map) {
             } else {
                 if (x === map_x.length - 1) {
                     if (parts.type === '') {
-                        if (map_x[x] === 0) {
+                        if (map_x[x] === 1) {
                             parts.type = 'pass';
                         } else {
                             parts.type = 'wall';
@@ -974,24 +1162,109 @@ function makePartsList(map) {
                     if (map_x[x] === map_x[x - 1]) {
                         x_cnt += 1;
                     } else {
-                        x_cnt += 1;
-                        if (map_x[x] === 0) {
+                        parts.width = x_cnt;
+                        parts_list.push(parts);
+
+                        // x_cnt += 1;
+
+                        x_cnt = 0;
+                        parts = { x: x, y: y, width: 1, height: 1, type: '' };
+                        if (map_x[x] === 1) {
                             parts.type = 'pass';
                         } else {
                             parts.type = 'wall';
                         }
-                        parts.width = x_cnt;
-                        x_cnt = 0;
-                        parts_list.push(parts);
-                        parts = { x: x, y: y, width: 1, height: 1, type: '' };
                     }
                 }
             }
             // parts_list.push(parts);
         }
     }
+
     // console.log(parts_list);
     // return parts_list;
+
+    //キャラの通り道を作成
+
+    const pass_list = [];
+
+    for (var i = 0; i < parts_list.length; i++) {
+        var parts = parts_list[i];
+        if (parts.type === 'pass') {
+            pass_list.push(parts);
+        }
+    }
+
+    pass_list.sort(function (a, b) {
+        if (a.x < b.x) return -1;
+        if (a.x > b.x) return 1;
+        if (a.y < b.y) return -1;
+        if (a.y > b.y) return 1;
+        return 0;
+    });
+
+    for (var i = 0; i < pass_list.length - 1; i++) {
+        var pass1 = pass_list[i];
+        var pass2 = pass_list[i + 1];
+        var pass_y_dif = pass2.y - pass1.y;
+        var pass_w_dif = Math.abs(pass2.width - pass1.width);
+
+        if (pass_y_dif === pass1.height && pass_w_dif <= 2) {
+            pass_list[i].height += 1;
+            pass_list.splice(i + 1, 1);
+            i = i - 1;
+        }
+    }
+
+    pass_list.sort(function (a, b) {
+        if ((a.x + a.width) < (b.x + b.width)) return 1;
+        if ((a.x + a.width) > (b.x + b.width)) return -1;
+        if (a.y < b.y) return -1;
+        if (a.y > b.y) return 1;
+        return 0;
+    });
+
+    for (var i = 0; i < pass_list.length - 1; i++) {
+        var pass1 = pass_list[i];
+        var pass2 = pass_list[i + 1];
+        var pass1_area = pass1.width * pass1.height;
+        var pass_y_dif = pass2.y - pass1.y;
+        var pass_h_dif = pass1.height - pass2.height;
+        var pass_w_dif = Math.abs(pass1.width - pass2.width);
+        if (pass_y_dif === pass1.height && pass_w_dif <= 2) {
+            if (pass_w_dif !== 0 && pass1.width >= 0) {
+                pass_list[i].width = pass1.width;
+            } else {
+                pass_list[i].width = pass2.width;
+            }
+            pass_list[i].height += pass2.height;
+            pass_list.splice(i + 1, 1);
+            i = i - 1;
+        }
+        if (pass1_area <= CANVAS_SMALL_LIMIT) {
+            pass_list.splice(i, 1);
+            i = i - 1;
+        }
+    }
+
+    var avg = calcurateAverageThickness(pass_list);
+
+    for (var i = 0; i < pass_list.length; i++) {
+        var pass = pass_list[i];
+        if (pass.width > pass.height) {
+            pass.y = Math.ceil(pass.y + pass.height / 2);
+            pass.height = 1;
+        } else {
+            pass.x = Math.ceil(pass.x + pass.width / 2);
+            pass.width = 1;
+            pass.y = Math.ceil(pass.y - (avg / 2));
+            pass.height = Math.ceil(pass.height + avg * 1.5);
+        }
+    }
+
+    player_pass = pass_list;
+
+    // return pass_list;
 
     // 壁のみでテスト------------------------------
     const wall_list = [];
@@ -1003,13 +1276,6 @@ function makePartsList(map) {
         }
     }
 
-
-    // for (var i = 0; i < wall_list.length; i++) {
-    //     const parts1 = parts_list[i];
-    //     const parts2 = parts_list[i + 1];
-    //     var left_d = parts1.x - parts2.x
-    // }
-
     wall_list.sort(function (a, b) {
         if (a.x < b.x) return -1;
         if (a.x > b.x) return 1;
@@ -1018,40 +1284,22 @@ function makePartsList(map) {
         return 0;
     });
 
-    new_list = { ...wall_list };
-    console.log(new_list);
-
     for (var i = 0; i < wall_list.length - 1; i++) {
         var wall1 = wall_list[i];
         var wall2 = wall_list[i + 1];
-        // var wall_x_dif = wall1.x - wall2.x;
+        var wall_x_dif = wall1.x - wall2.x;
         var wall_y_dif = wall2.y - wall1.y;
         var wall_w_dif = Math.abs(wall2.width - wall1.width);
-        // var walls = [];
 
         if (wall_y_dif === wall1.height && wall_w_dif <= 2) {
+            if (wall_w_dif < 0) {
+                wall1.width = wall2.width;
+            }
             wall_list[i].height += 1;
             wall_list.splice(i + 1, 1);
             i = i - 1;
         }
-        //  else {
-        //     for (var j = i + 1; j < wall_list.length - 1; j++) {
-        //         if (wall1.y + wall1.height + 1 === wall_list[j].y) {
-        //             walls.push(wall_list[j]);
-        //         }
-        //     }
-        //     for (var j = 0; j < walls.length; j++) {
-        //         var wall = walls[j];
-        //         var wall_x_dif = Math.abs(wall1.x - wall.x);
-        //         var wall_w_dif = Math.abs(wall1.width - wall.width);
-        //         if (wall_x_dif <= 2 && wall_w_dif <= 2) {
-        //             wall_list[i].height += 1;
-        //             wall_list.splice(j, 1);
-        //             i = i - 1;
-        //         }
-        //     }
-        // }
-    // }
+    }
 
     wall_list.sort(function (a, b) {
         if ((a.x + a.width) < (b.x + b.width)) return 1;
@@ -1061,6 +1309,7 @@ function makePartsList(map) {
         return 0;
     });
 
+
     for (var i = 0; i < wall_list.length - 1; i++) {
         var wall1 = wall_list[i];
         var wall2 = wall_list[i + 1];
@@ -1069,42 +1318,57 @@ function makePartsList(map) {
         var wall_h_dif = wall1.height - wall2.height;
         var wall_w_dif = Math.abs(wall1.width - wall2.width);
         if (wall_y_dif === wall1.height && wall_w_dif <= 2) {
-            if (wall_w_dif !== 0 && wall_h_dif >= 0) {
+            if (wall_w_dif !== 0 && wall1.width >= 0) {
                 wall_list[i].width = wall1.width;
-            } else{
+            } else {
                 wall_list[i].width = wall2.width;
             }
             wall_list[i].height += wall2.height;
             wall_list.splice(i + 1, 1);
             i = i - 1;
         }
-        // if (wall1_area <= CANVAS_SMALL_LIMIT) {
-        //     wall_list.splice(i, 1);            
-        // }        
+        if (wall1_area <= CANVAS_SMALL_LIMIT) {
+            wall_list.splice(i, 1);
+            i = i - 1;
+        }
     }
+
+    // console.log(wall_list);
+    for (var i = 0; i < pass_list.length; i++) {
+        wall_list.push(pass_list[i]);
+    }
+    // wall_list.push(parts_list);
+
+    // ------------------------------    
+    return wall_list;
 }
 
-console.log(wall_list);
+function calcurateAverageThickness(list) {
+    var sum = 0;
+    for (var i = 0; i < list.length - 1; i++) {
+        if (list[i].width <= list[i].height) {
+            sum += list[i].width;
+        } else {
+            sum += list[i].height;
+        }
+    };
 
-// ------------------------------    
-return wall_list;
+    var avg = Math.ceil(sum / list.length);
+    return avg;
 }
 
 function displaySVG(parts_list) {
     $('#new_meiro').empty();
     var str = "";
-    str += '<svg width=' + 100 * MAGNIFICATION + ' height=' + 100 * MAGNIFICATION + ' viewBox="0 0 ' + 100 * MAGNIFICATION + ' ' + 100 * MAGNIFICATION + '">';
+    str += '<svg id="svg_meiro" width=' + CANVAS_SIZE * MAGNIFICATION + ' height=' + CANVAS_SIZE * MAGNIFICATION + ' viewBox="0 0 ' + CANVAS_SIZE * MAGNIFICATION + ' ' + CANVAS_SIZE * MAGNIFICATION + '">';
 
     for (var i = 0; i < parts_list.length; i++) {
         var parts = parts_list[i];
         if (parts.type !== 'pass') {
             str += '<rect x=' + parts.x * MAGNIFICATION + ' y=' + parts.y * MAGNIFICATION + ' width=' + parts.width * MAGNIFICATION + ' height=' + parts.height * MAGNIFICATION + ' fill="blue"></rect>';
+        } else {
+            str += '<rect x=' + parts.x * MAGNIFICATION + ' y=' + parts.y * MAGNIFICATION + ' width=' + parts.width * MAGNIFICATION + ' height=' + parts.height * MAGNIFICATION + ' fill="orange"></rect>';
         }
-        // if (parts.type === 'pass') {
-        //     str += '<rect x=' + parts.x * MAGNIFICATION + ' y=' + parts.y * MAGNIFICATION + ' width=' + parts.width * MAGNIFICATION + ' height=' + parts.height * MAGNIFICATION + ' fill="white"></rect>';
-        // } else {
-        //     str += '<rect x=' + parts.x * MAGNIFICATION + ' y=' + parts.y * MAGNIFICATION + ' width=' + parts.width * MAGNIFICATION + ' height=' + parts.height * MAGNIFICATION + ' fill="blue"></rect>';
-        // }
     }
     str += '</svg>';
     $('#new_meiro').append(str);
@@ -1113,15 +1377,13 @@ function displaySVG(parts_list) {
 function displayAFRAME(parts_list) {
     $('#vr_meiro').empty();
     var str = "";
-    str += '<a-scene  embedded>';
+    str += '<a-scene id="a_meiro" embedded>';
     str += '<a-sky color="#DDDDDD"></a-sky>';
     str += '<a-box  width= ' + CANVAS_SIZE + ' height=2 ' + 'depth=' + CANVAS_SIZE + ' position="' + (CANVAS_SIZE / 2) + ' 0 ' + (CANVAS_SIZE / 2) + ' color="white" ></a-box>';
-    // str += '<a-camera position="20 70 70" rotation="0 90 0" cursor-visible="true" cursor-scale="2" cursor-color="#0095DD" cursor-opacity="0.5"></a-camera>';
-    str += '<a-entity position="50 100 50" rotation="-90 0 0">';
+    str += '<a-entity id="a_camera" position="' + camera_position.x + ' ' + camera_position.y + ' ' + camera_position.z + '" rotation="-90 0 0">';
     str += '<a-camera></a-camera>';
-    // str += '<a-animation attribute="position" to="0 0 0" direction="alternate" dur="2000" repeat="indefinite">';
-    // str += '</a-animation>';
     str += '</a-entity>';
+    str += '<a-entity light="color: #FFF; intensity: 1.5" position="75 150 0"></a-entity>';
 
     for (var i = 0; i < parts_list.length; i++) {
         var parts = parts_list[i];
@@ -1130,10 +1392,11 @@ function displayAFRAME(parts_list) {
         // } else {
         //     str += '<a-box width= ' + parts.width + ' height="4" depth="1" position="' + (parts.x + parts.width / 2) + ' 2 ' + parts.y + '" color="blue"></a-box>';
         // }
-        if (parts.type !== 'pass') {
+        if (parts.type === 'wall') {
             str += '<a-box width= ' + parts.width + ' height="8"' + ' depth=' + parts.height + ' position="' + (parts.x + parts.width / 2) + ' 2 ' + (parts.y + parts.height / 2) + '" color="blue"></a-box>';
         }
     }
+    // str += '<a-sphere id="sphere" color="#C0C0C0" radius="3" position="13 2 16" ></a-sphere>';
     str += '</a-scene>';
     $('#vr_meiro').append(str);
 }
@@ -1266,3 +1529,58 @@ var downloadCsv = (function () {
     };
 
 })();
+
+class Player {
+    constructor(id, x, y, size, pass_idx, direction, distance, root) {
+        this.id = id;
+        this.x = x;
+        this.y = y;
+        this.size = size;
+        this.pass_idx = pass_idx;
+        this.direction = direction;
+        this.distance = distance;
+        this.root = root;
+    }
+    set id(id) {
+        this._id = id;
+    }
+    get id() {
+        return this._id;
+    }
+    set y(y) {
+        this._y = y;
+    }
+    get y() {
+        return this._y;
+    }
+    set size(size) {
+        this._size = size;
+    }
+    get size() {
+        return this._size;
+    }
+    set direction(direction) {
+        this._direction = direction;
+    }
+    get direction() {
+        return this._direction;
+    }
+    set distance(distance) {
+        this._distance = distance;
+    }
+    get distance() {
+        return this._distance;
+    }
+    set pass_idx(pass_idx) {
+        this._pass_idx = pass_idx;
+    }
+    get pass_idx() {
+        return this._pass_idx;
+    }
+    set root(root) {
+        this._root = root;
+    }
+    get root() {
+        return this._root;
+    }
+}
