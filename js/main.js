@@ -7,7 +7,7 @@ const PLAYSER_SIZE_HOSEI = 1;
 const CHECK_DISTANCE = 3;
 const MAGNIFICATION = 3;
 const CANVAS_SMALL_LIMIT = CANVAS_SIZE / 100 * 2
-const CAMERA_MOVE_UNIT = 10;
+const CAMERA_MOVE_UNIT = 5;
 const PLAYER_MOVE_UNIT = 5;
 const PLAYER_SPEED = 1;
 
@@ -21,11 +21,12 @@ var end = [];
 var players = [];
 var wall_width = 0;
 var camera_position = { x: 100, y: 150, z: 100 }
+var camera_rotation = { x: -90, y: 0, z: 0 }
 var player_pass = [];
 var first_play = true;
 var player_num = 0;
 var player_size = 3;
-const goal = {x:95, y:97}
+const goal = { x: CANVAS_SIZE * 0.99 }
 
 $(function () {
     var finish = false;
@@ -120,8 +121,8 @@ $(function () {
 
     function judgeGoal() {
         for (var i = 0; i < players.length; i++) {
-            var player = players[i]; 
-            if (player.x === goal.x && player.y === goal.y) {
+            var player = players[i];
+            if (player.x === goal.x) {
                 console.log('GameClear');
                 // displayLoadtoGoal(player, size, map);    
                 return true;
@@ -279,26 +280,47 @@ function moveCamera_btn(btn) {
     switch (btn) {
         case 'a_up':
             camera_position.z -= CAMERA_MOVE_UNIT;
+            $('#a_camera').attr('position', camera_position.x + ' ' + camera_position.y + ' ' + camera_position.z);
             break;
         case 'a_left':
             camera_position.x -= CAMERA_MOVE_UNIT;
+            $('#a_camera').attr('position', camera_position.x + ' ' + camera_position.y + ' ' + camera_position.z);
             break;
         case 'a_right':
             camera_position.x += CAMERA_MOVE_UNIT;
+            $('#a_camera').attr('position', camera_position.x + ' ' + camera_position.y + ' ' + camera_position.z);
             break;
         case 'a_down':
             camera_position.z += CAMERA_MOVE_UNIT;
+            $('#a_camera').attr('position', camera_position.x + ' ' + camera_position.y + ' ' + camera_position.z);
             break;
         case 'a_zmin':
             camera_position.y -= CAMERA_MOVE_UNIT;
+            $('#a_camera').attr('position', camera_position.x + ' ' + camera_position.y + ' ' + camera_position.z);
             break;
         case 'a_zmout':
             camera_position.y += CAMERA_MOVE_UNIT;
+            $('#a_camera').attr('position', camera_position.x + ' ' + camera_position.y + ' ' + camera_position.z);
+            break;
+        case 'a_drote':
+            camera_rotation.x -= CAMERA_MOVE_UNIT;
+            $('#a_camera').attr('rotation', camera_rotation.x + ' ' + camera_rotation.y + ' ' + camera_rotation.z);
+            break;
+        case 'a_urote':
+            camera_rotation.x += CAMERA_MOVE_UNIT;
+            $('#a_camera').attr('rotation', camera_rotation.x + ' ' + camera_rotation.y + ' ' + camera_rotation.z);
+            break;
+        case 'a_rrote':
+            camera_rotation.y -= CAMERA_MOVE_UNIT;
+            $('#a_camera').attr('rotation', camera_rotation.x + ' ' + camera_rotation.y + ' ' + camera_rotation.z);
+            break;
+        case 'a_lrote':
+            camera_rotation.y += CAMERA_MOVE_UNIT;
+            $('#a_camera').attr('rotation', camera_rotation.x + ' ' + camera_rotation.y + ' ' + camera_rotation.z);
             break;
         default:
             console.log('error btn= ' + btn);
     }
-    $('#a_camera').attr('position', camera_position.x + ' ' + camera_position.y + ' ' + camera_position.z);
 };
 
 function moveP_btn(btn) {
@@ -771,7 +793,7 @@ function displayAFRAME(parts_list) {
     str += '<a-scene id="a_meiro" embedded>';
     str += '<a-sky color="#DDDDDD"></a-sky>';
     str += '<a-box  width= ' + CANVAS_SIZE + ' height=2 ' + 'depth=' + CANVAS_SIZE + ' position="' + (CANVAS_SIZE / 2) + ' 0 ' + (CANVAS_SIZE / 2) + ' color="white" ></a-box>';
-    str += '<a-entity id="a_camera" position="' + camera_position.x + ' ' + camera_position.y + ' ' + camera_position.z + '" rotation="-90 0 0">';
+    str += '<a-entity id="a_camera" position="' + camera_position.x + ' ' + camera_position.y + ' ' + camera_position.z + '" rotation="' + camera_rotation.x + ' ' + camera_rotation.y + ' ' + camera_rotation.z + '">';
     str += '<a-camera></a-camera>';
     str += '</a-entity>';
     str += '<a-entity light="color: #FFF; intensity: 1.5" position="75 150 0"></a-entity>';
