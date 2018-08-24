@@ -272,7 +272,7 @@ function addSvgRectElement(id, x, y, width, height, color) {
 }
 
 function addAframeElement(id, x, y, radius, color) {
-    var str = '<a-sphere id=a_' + id + ' color="' + color + '" radius="' + radius + '" position="' + x + player_size + y + '" ></a-sphere>';
+    var str = '<a-sphere id=a_' + id + ' color="' + color + '" radius="' + radius + '" position="' + x + ' ' + player_size + ' ' + y + '" ></a-sphere>';
     $('#a_meiro').append(str);
 }
 
