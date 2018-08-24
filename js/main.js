@@ -348,11 +348,14 @@ function setInitial() {
     start = [];
     end = [];
     player = {};
+    players = [];
+
     var cv = document.createElement('canvas');
     var ctx = cv.getContext('2d');
     ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
     $('#st_msg').css({ display: 'inline' });
     $('#show').css({ display: 'inline' });
+    $('#vr_meiro').empty();
 }
 
 function displayBtn(display) {
