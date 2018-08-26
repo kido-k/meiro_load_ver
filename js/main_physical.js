@@ -20,12 +20,13 @@ var start = [];
 var end = [];
 var players = [];
 var wall_width = 0;
-var camera_position = { x: 100, y: 150, z: 100 }
-var camera_rotation = { x: -90, y: 0, z: 0 }
+var camera_position = { x: 100, y: -100, z: 150 }
+var camera_rotation = { x: 0, y: 0, z: 0 }
 var player_pass = [];
-var first_play = true;
 var player_num = 0;
 var player_size = 3;
+var parts_depth = 5;
+var first_play = true;
 const goal = { x: CANVAS_SIZE * 0.99 }
 
 $(function () {
@@ -134,8 +135,8 @@ $(function () {
 
 function createPlayer() {
     var id = 'player' + 0;
-    var x = 3;
-    var y = 16;
+    var x = 15;
+    var y = 0;
     player_size = 3;
     var pass_idx = 999;
     var direction = '';
@@ -273,7 +274,12 @@ function addSvgRectElement(id, x, y, width, height, color) {
 }
 
 function addAframeElement(id, x, y, radius, color) {
-    var str = '<a-sphere id=a_' + id + ' color="' + color + '" radius="' + radius + '" position="' + x + ' ' + player_size + ' ' + y + '" ></a-sphere>';
+    var str = '<a-entity id=a_' + id + ' ';
+    str += 'dynamic-body="mass:100;linearDamping: 0.01;angularDamping: 0.0001;"';
+    str += 'geometry="primitive:sphere; radius:' + radius + ';"';
+    str += 'material="color:' + color + ';"';
+    str += 'position="' + x + ' ' + y + ' ' + player_size + '"';
+    str += '></a-entity>';
     $('#a_meiro').append(str);
 }
 
@@ -794,22 +800,22 @@ function displaySVG(parts_list) {
 function displayAFRAME(parts_list) {
     $('#vr_meiro').empty();
     var str = "";
-    str += '<a-scene id="a_meiro" embedded physics="debug: false">';
+    str += '<a-scene id="a_meiro" embedded>';
     str += '<a-sky color="#DDDDDD"></a-sky>';
-    str += '<a-box static-body width= ' + CANVAS_SIZE + ' height=2 ' + 'depth=' + CANVAS_SIZE + ' position="' + (CANVAS_SIZE / 2) + ' 0 ' + (CANVAS_SIZE / 2) + ' color="white" ></a-box>';
     str += '<a-entity id="a_camera" position="' + camera_position.x + ' ' + camera_position.y + ' ' + camera_position.z + '" rotation="' + camera_rotation.x + ' ' + camera_rotation.y + ' ' + camera_rotation.z + '">';
     str += '<a-camera><a-cursor></a-cursor></a-camera>';
     str += '</a-entity>';
-    str += '<a-entity light="color: #FFF; intensity: 1.5" position="75 150 0"></a-entity>';
+    str += '<a-entity light="color: #FFF; intensity: 1.5" position="100 50 200"></a-entity>';
 
+    str += '<a-entity id="a_all" rotation="0 0 0">';
+    str += '<a-box static-body width= ' + CANVAS_SIZE + ' height= ' + CANVAS_SIZE + ' depth= 1' + ' position="' + (CANVAS_SIZE / 2) + ' ' + (CANVAS_SIZE / 2) * -1 +  ' ' + '-0.5' + ' color="white" ></a-box>';
     for (var i = 0; i < parts_list.length; i++) {
         var parts = parts_list[i];
         if (parts.type === 'wall') {
-            str += '<a-box static-body id="box' + i + '" cursor-listener width= ' + parts.width + ' height="8"' + ' depth=' + parts.height + ' position="' + (parts.x + parts.width / 2) + ' 2 ' + (parts.y + parts.height / 2) + '" color="blue"></a-box>';
+            str += '<a-box static-body id="box' + i + '" cursor-listener width= ' + parts.width + ' height=' + parts.height + ' depth=' + parts_depth + ' ' + ' position="' + (parts.x + parts.width / 2) + ' ' + (parts.y + parts.height / 2)  * -1 + ' ' + (parts_depth / 2) +  '" color="blue"></a-box>';
         }
     }
-    // str += '<a-sphere id="sphere" color="#C0C0C0" radius="3" position="13 2 16" ></a-sphere>';
-    str += '</a-scene>';
+    str += '</a-entity></a-scene>';
     $('#vr_meiro').append(str);
 }
 
