@@ -794,9 +794,9 @@ function displaySVG(parts_list) {
 function displayAFRAME(parts_list) {
     $('#vr_meiro').empty();
     var str = "";
-    str += '<a-scene id="a_meiro" embedded physics="debug: false">';
+    str += '<a-scene id="a_meiro" embedded>';
     str += '<a-sky color="#DDDDDD"></a-sky>';
-    str += '<a-box static-body width= ' + CANVAS_SIZE + ' height=2 ' + 'depth=' + CANVAS_SIZE + ' position="' + (CANVAS_SIZE / 2) + ' 0 ' + (CANVAS_SIZE / 2) + ' color="white" ></a-box>';
+    str += '<a-box width= ' + CANVAS_SIZE + ' height=2 ' + 'depth=' + CANVAS_SIZE + ' position="' + (CANVAS_SIZE / 2) + ' 0 ' + (CANVAS_SIZE / 2) + ' color="white" ></a-box>';
     str += '<a-entity id="a_camera" position="' + camera_position.x + ' ' + camera_position.y + ' ' + camera_position.z + '" rotation="' + camera_rotation.x + ' ' + camera_rotation.y + ' ' + camera_rotation.z + '">';
     str += '<a-camera><a-cursor></a-cursor></a-camera>';
     str += '</a-entity>';
@@ -805,7 +805,7 @@ function displayAFRAME(parts_list) {
     for (var i = 0; i < parts_list.length; i++) {
         var parts = parts_list[i];
         if (parts.type === 'wall') {
-            str += '<a-box static-body id="box' + i + '" cursor-listener width= ' + parts.width + ' height="8"' + ' depth=' + parts.height + ' position="' + (parts.x + parts.width / 2) + ' 2 ' + (parts.y + parts.height / 2) + '" color="blue"></a-box>';
+            str += '<a-box id="box' + i + '" cursor-listener width= ' + parts.width + ' height="8"' + ' depth=' + parts.height + ' position="' + (parts.x + parts.width / 2) + ' 2 ' + (parts.y + parts.height / 2) + '" color="blue"></a-box>';
         }
     }
     // str += '<a-sphere id="sphere" color="#C0C0C0" radius="3" position="13 2 16" ></a-sphere>';

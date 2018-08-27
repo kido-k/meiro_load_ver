@@ -8,6 +8,7 @@ const CHECK_DISTANCE = 3;
 const MAGNIFICATION = 3;
 const CANVAS_SMALL_LIMIT = CANVAS_SIZE / 100 * 2
 const CAMERA_MOVE_UNIT = 5;
+const BORD_ROTE_UNIT = 5;
 const PLAYER_MOVE_UNIT = 5;
 const PLAYER_SPEED = 1;
 
@@ -20,8 +21,14 @@ var start = [];
 var end = [];
 var players = [];
 var wall_width = 0;
-var camera_position = { x: 100, y: -100, z: 150 }
-var camera_rotation = { x: 0, y: 0, z: 0 }
+// var camera_position = { x: 100, y: 150, z: 100 }
+// var camera_rotation = { x: -90, y: 0, z: 0 }
+var camera_position = { x: 100, y: 150, z: 100 }
+var camera_rotation = { x: -90, y: 0, z: 0 }
+var light_position = { x: 100, y: 300, z: 100 }
+// var light_position = { x: 75, y: 150, z: 0 }
+var bord_rotation = { x: 360, y: 0, z: 0 }
+
 var player_pass = [];
 var player_num = 0;
 var player_size = 3;
@@ -76,9 +83,9 @@ $(function () {
         player = moveCamera_btn(btn);
     });
 
-    $('.p_move').on('click', function () {
+    $('.b_move').on('click', function () {
         const btn = this.id;
-        player = moveP_btn(btn);
+        roteBord(btn);
     });
 
     $('html').keyup(function (e) {
@@ -135,8 +142,9 @@ $(function () {
 
 function createPlayer() {
     var id = 'player' + 0;
-    var x = 15;
-    var y = 0;
+    var x = 5;
+    var y = 15;
+    var z = 15;
     player_size = 3;
     var pass_idx = 999;
     var direction = '';
@@ -146,7 +154,7 @@ function createPlayer() {
     var player = new Player(id, x, y, player_size, pass_idx, direction, distance, root);
     players.push(player);
     // addSvgRectElement(id, x, y, size, size, 'yellow');
-    addAframeElement(id, x, y, player_size, '#C0C0C0');
+    addAframeElement(id, x, y, z, player_size, '#C0C0C0');
     // $("#player0").velocity.set(0, 0, -4);
 }
 
@@ -273,12 +281,12 @@ function addSvgRectElement(id, x, y, width, height, color) {
     $('#svg_meiro').append(rect);
 }
 
-function addAframeElement(id, x, y, radius, color) {
+function addAframeElement(id, x, y, z, radius, color) {
     var str = '<a-entity id=a_' + id + ' ';
     str += 'dynamic-body="mass:100;linearDamping: 0.01;angularDamping: 0.0001;"';
     str += 'geometry="primitive:sphere; radius:' + radius + ';"';
     str += 'material="color:' + color + ';"';
-    str += 'position="' + x + ' ' + y + ' ' + player_size + '"';
+    str += 'position="' + x + ' ' + y + ' ' + z + '"';
     str += '></a-entity>';
     $('#a_meiro').append(str);
 }
@@ -330,25 +338,24 @@ function moveCamera_btn(btn) {
     }
 };
 
-function moveP_btn(btn) {
-    var position = $('#player').attr('position');
+function roteBord(btn) {
     switch (btn) {
-        case 'p_up':
-            position.z -= PLAYER_MOVE_UNIT;
+        case 'b_up':
+            bord_rotation.x -= PLAYER_MOVE_UNIT;
             break;
-        case 'p_left':
-            position.x -= PLAYER_MOVE_UNIT;
+        case 'b_left':
+            bord_rotation.z += BORD_ROTE_UNIT;
             break;
-        case 'p_right':
-            position.x += PLAYER_MOVE_UNIT;
+        case 'b_right':
+            bord_rotation.z -= BORD_ROTE_UNIT;
             break;
-        case 'p_down':
-            position.z += PLAYER_MOVE_UNIT;
+        case 'b_down':
+            bord_rotation.x += PLAYER_MOVE_UNIT;
             break;
         default:
             console.log('error btn= ' + btn);
     }
-    $('#sphere').attr('position', position.x + ' ' + position.y + ' ' + position.z);
+    $('#a_all').attr('rotation', bord_rotation.x + ' ' + bord_rotation.y + ' ' + bord_rotation.z);
 };
 
 function setInitial() {
@@ -800,19 +807,20 @@ function displaySVG(parts_list) {
 function displayAFRAME(parts_list) {
     $('#vr_meiro').empty();
     var str = "";
-    str += '<a-scene id="a_meiro" embedded>';
+    str += '<a-scene id="a_meiro" embedded physics="debug: true;">';
     str += '<a-sky color="#DDDDDD"></a-sky>';
     str += '<a-entity id="a_camera" position="' + camera_position.x + ' ' + camera_position.y + ' ' + camera_position.z + '" rotation="' + camera_rotation.x + ' ' + camera_rotation.y + ' ' + camera_rotation.z + '">';
     str += '<a-camera><a-cursor></a-cursor></a-camera>';
     str += '</a-entity>';
-    str += '<a-entity light="color: #FFF; intensity: 1.5" position="100 50 200"></a-entity>';
-
-    str += '<a-entity id="a_all" rotation="0 0 0">';
-    str += '<a-box static-body width= ' + CANVAS_SIZE + ' height= ' + CANVAS_SIZE + ' depth= 1' + ' position="' + (CANVAS_SIZE / 2) + ' ' + (CANVAS_SIZE / 2) * -1 +  ' ' + '-0.5' + ' color="white" ></a-box>';
+    str += '<a-entity light="color: #FFF; intensity: 1.5" position="' + light_position.x + ' ' + light_position.y + ' ' + light_position.z + '"></a-entity>';
+    str += '<a-entity id="a_all" rotation="' + bord_rotation.x + ' ' + bord_rotation.y + ' ' + bord_rotation.z + '">';
+    // str += '<a-box static-body width= ' + CANVAS_SIZE + ' height= ' + CANVAS_SIZE + ' depth= 1' + ' position="' + (CANVAS_SIZE / 2) + ' ' + (CANVAS_SIZE / 2) * -1 +  ' ' + '-0.5' + ' color="white" transparent="true" opacity=1></a-box>';
+    str += '<a-box static-body width= ' + CANVAS_SIZE + ' height=2 ' + 'depth=' + CANVAS_SIZE + ' position="' + (CANVAS_SIZE / 2) + ' 0 ' + (CANVAS_SIZE / 2) + ' color="white" ></a-box>';
     for (var i = 0; i < parts_list.length; i++) {
         var parts = parts_list[i];
         if (parts.type === 'wall') {
-            str += '<a-box static-body id="box' + i + '" cursor-listener width= ' + parts.width + ' height=' + parts.height + ' depth=' + parts_depth + ' ' + ' position="' + (parts.x + parts.width / 2) + ' ' + (parts.y + parts.height / 2)  * -1 + ' ' + (parts_depth / 2) +  '" color="blue"></a-box>';
+            // str += '<a-box static-body id="box' + i + '" cursor-listener width= ' + parts.width + ' height=' + parts.height + ' depth=' + parts_depth + ' ' + ' position="' + (parts.x + parts.width / 2) + ' ' + (parts.y + parts.height / 2) * -1 + ' ' + (parts_depth / 2) + '" color="blue"></a-box>';
+            str += '<a-box static-body id="box' + i + '" cursor-listener width= ' + parts.width + ' height="8"' + ' depth=' + parts.height + ' position="' + (parts.x + parts.width / 2) + ' 2 ' + (parts.y + parts.height / 2) + '" color="#1B1B1B"></a-box>';
         }
     }
     str += '</a-entity></a-scene>';
