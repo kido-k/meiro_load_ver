@@ -8,7 +8,7 @@ const CHECK_DISTANCE = 3;
 const MAGNIFICATION = 3;
 const CANVAS_SMALL_LIMIT = CANVAS_SIZE / 100 * 2
 const CAMERA_MOVE_UNIT = 5;
-const BORD_ROTE_UNIT = 5;
+const BORD_ROTE_UNIT = 1;
 const PLAYER_MOVE_UNIT = 5;
 const PLAYER_SPEED = 1;
 
@@ -283,7 +283,7 @@ function addSvgRectElement(id, x, y, width, height, color) {
 
 function addAframeElement(id, x, y, z, radius, color) {
     var str = '<a-entity id=a_' + id + ' ';
-    str += 'dynamic-body="mass:100;linearDamping: 0.01;angularDamping: 0.0001;"';
+    str += 'dynamic-body="mass:100000;linearDamping: 0.01;angularDamping: 0.0001;"';
     str += 'geometry="primitive:sphere; radius:' + radius + ';"';
     str += 'material="color:' + color + ';"';
     str += 'position="' + x + ' ' + y + ' ' + z + '"';
@@ -341,7 +341,7 @@ function moveCamera_btn(btn) {
 function roteBord(btn) {
     switch (btn) {
         case 'b_up':
-            bord_rotation.x -= PLAYER_MOVE_UNIT;
+            bord_rotation.x -= BORD_ROTE_UNIT;
             break;
         case 'b_left':
             bord_rotation.z += BORD_ROTE_UNIT;
@@ -350,12 +350,18 @@ function roteBord(btn) {
             bord_rotation.z -= BORD_ROTE_UNIT;
             break;
         case 'b_down':
-            bord_rotation.x += PLAYER_MOVE_UNIT;
+            bord_rotation.x += BORD_ROTE_UNIT;
+            break;
+        case 'b_minus':
+            bord_rotation.y -= BORD_ROTE_UNIT;
+            break;
+        case 'b_plus':
+            bord_rotation.y += BORD_ROTE_UNIT;
             break;
         default:
             console.log('error btn= ' + btn);
     }
-    $('#a_all').attr('rotation', bord_rotation.x + ' ' + bord_rotation.y + ' ' + bord_rotation.z);
+    $('#a_board').attr('rotation', bord_rotation.x + ' ' + bord_rotation.y + ' ' + bord_rotation.z);
 };
 
 function setInitial() {
@@ -807,13 +813,15 @@ function displaySVG(parts_list) {
 function displayAFRAME(parts_list) {
     $('#vr_meiro').empty();
     var str = "";
-    str += '<a-scene id="a_meiro" embedded physics="debug: true;">';
-    str += '<a-sky color="#DDDDDD"></a-sky>';
+    str += '<a-scene id="a_meiro" embedded physics="debug: true;friction: 0.1;gravity:-9.8; restitution: 0.01">';
+    str += '<a-entity light="color: #FFF; intensity: 1.5" position="' + light_position.x + ' ' + light_position.y + ' ' + light_position.z + '"></a-entity>';
     str += '<a-entity id="a_camera" position="' + camera_position.x + ' ' + camera_position.y + ' ' + camera_position.z + '" rotation="' + camera_rotation.x + ' ' + camera_rotation.y + ' ' + camera_rotation.z + '">';
     str += '<a-camera><a-cursor></a-cursor></a-camera>';
     str += '</a-entity>';
-    str += '<a-entity light="color: #FFF; intensity: 1.5" position="' + light_position.x + ' ' + light_position.y + ' ' + light_position.z + '"></a-entity>';
-    str += '<a-entity id="a_all" rotation="' + bord_rotation.x + ' ' + bord_rotation.y + ' ' + bord_rotation.z + '">';
+    str += '<a-entity id="a_board" rotation="' + bord_rotation.x + ' ' + bord_rotation.y + ' ' + bord_rotation.z + '">';
+    // str += '<a-entity id="a_all">';
+    str += '<a-sky color="#DDDDDD"></a-sky>';
+    str += '<a-entity id="a_board" rotation="' + bord_rotation.x + ' ' + bord_rotation.y + ' ' + bord_rotation.z + '">';
     // str += '<a-box static-body width= ' + CANVAS_SIZE + ' height= ' + CANVAS_SIZE + ' depth= 1' + ' position="' + (CANVAS_SIZE / 2) + ' ' + (CANVAS_SIZE / 2) * -1 +  ' ' + '-0.5' + ' color="white" transparent="true" opacity=1></a-box>';
     str += '<a-box static-body width= ' + CANVAS_SIZE + ' height=2 ' + 'depth=' + CANVAS_SIZE + ' position="' + (CANVAS_SIZE / 2) + ' 0 ' + (CANVAS_SIZE / 2) + ' color="white" ></a-box>';
     for (var i = 0; i < parts_list.length; i++) {
@@ -823,7 +831,9 @@ function displayAFRAME(parts_list) {
             str += '<a-box static-body id="box' + i + '" cursor-listener width= ' + parts.width + ' height="8"' + ' depth=' + parts.height + ' position="' + (parts.x + parts.width / 2) + ' 2 ' + (parts.y + parts.height / 2) + '" color="#1B1B1B"></a-box>';
         }
     }
-    str += '</a-entity></a-scene>';
+    // str += '</a-entity>'
+    str += '</a-entity>'
+    str += '</a-scene>';
     $('#vr_meiro').append(str);
 }
 
