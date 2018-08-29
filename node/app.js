@@ -16,6 +16,10 @@ io.sockets.on("connection", function (socket) {
       console.log('result: ' + data);
     });
 
+    socket.on('test', function(msg){
+      console.log(msg);
+    })
+
   // 接続開始カスタムイベント(接続元ユーザを保存し、他ユーザへ通知)
   // socket.on("connected", function (name) {
   //   var msg = name + "が入室しました";
