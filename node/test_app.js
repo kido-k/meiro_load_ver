@@ -2,9 +2,9 @@ var fs = require("fs");
 var server = require("http").createServer(function (req, res) {
   res.writeHead(200, { "Content-Type": "text/html" });
   // var output = fs.readFileSync("test.html", "utf-8");
-  var output = fs.readFileSync("../index_physical.html", "utf-8");
+  var output = fs.readFileSync("test.html", "utf-8");
   res.end(output);
-}).listen(8080);
+}).listen(8090);
 var io = require("socket.io").listen(server);
 
 // ユーザ管理ハッシュ
@@ -13,10 +13,10 @@ var userHash = {};
 // 2.イベントの定義
 io.sockets.on("connection", function (socket) {
 
-  socket.on('bord_control', function (btn) {
-    // console.log(btn);
-    io.sockets.emit("bord_control", btn);
-  });
+
+    socket.on('test', function(msg){
+      console.log(msg);
+    })
 
   // 接続確認
   socket.on("connected", function (msg) {

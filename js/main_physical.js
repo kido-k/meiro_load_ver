@@ -35,15 +35,14 @@ var player_size = 3;
 var parts_depth = 5;
 var first_play = true;
 const goal = { x: CANVAS_SIZE * 0.99 }
+var socket;
 
 $(function () {
     var finish = false;
     var auto = false;
     var display = true;
-    var start_flg = false;
-    var end_flg = false;
-    var rows = [];
-    var clms = [];
+
+    connectSocket();
 
     dragFile();
 
@@ -51,11 +50,9 @@ $(function () {
 
     $('#load').on('click', function () {
         setInitial();
-        display = true;
-        start_flg = false;
-        end_flg = false;
         finish = false;
         auto = false;
+        display = true;
         createMeiro();
         createPlayer();
         $('#show').click();
@@ -85,6 +82,11 @@ $(function () {
 
     $('.b_move').on('click', function () {
         const btn = this.id;
+        roteBord(btn);
+    });
+
+    socket.on('bord_control', function (btn) {
+        console.log(btn);
         roteBord(btn);
     });
 
@@ -139,6 +141,15 @@ $(function () {
         return false;
     }
 });
+
+function connectSocket() {
+    socket = io.connect('http://localhost:8080');
+    socket.emit('connected', 'board_connected');
+    socket.on('connect_return', function(msg) {
+        console.log(msg);
+    });
+}
+
 
 function createPlayer() {
     var id = 'player' + 0;

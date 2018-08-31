@@ -29,13 +29,9 @@ var player_size = 3;
 const goal = { x: CANVAS_SIZE * 0.99 }
 
 $(function () {
+    var display = true;
     var finish = false;
     var auto = false;
-    var display = true;
-    var start_flg = false;
-    var end_flg = false;
-    var rows = [];
-    var clms = [];
 
     dragFile();
 
@@ -44,8 +40,6 @@ $(function () {
     $('#load').on('click', function () {
         setInitial();
         display = true;
-        start_flg = false;
-        end_flg = false;
         finish = false;
         auto = false;
         createMeiro();
