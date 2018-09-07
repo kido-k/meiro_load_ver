@@ -21,16 +21,15 @@ var start = [];
 var end = [];
 var players = [];
 var wall_width = 0;
-// var camera_position = { x: 100, y: 150, z: 100 }
-// var camera_rotation = { x: -90, y: 0, z: 0 }
-var camera_position = { x: 100, y: 150, z: 100 }
+var camera_position = { x: 0, y: 150, z: 0 }
 var camera_rotation = { x: -90, y: 0, z: 0 }
 var light_position = { x: 100, y: 300, z: 100 }
-// var light_position = { x: 75, y: 150, z: 0 }
+var bord_position = { x: -100, y: 0, z: -100 }
 var bord_rotation = { x: 360, y: 0, z: 0 }
 
 var player_pass = [];
 var player_num = 0;
+const player_start_position = {  x: -95, y: 15, z: -85  };
 var player_size = 3;
 var parts_depth = 5;
 var first_play = true;
@@ -145,7 +144,7 @@ $(function () {
 function connectSocket() {
     socket = io.connect('http://localhost:8080');
     socket.emit('connected', 'board_connected');
-    socket.on('connect_return', function(msg) {
+    socket.on('connect_return', function (msg) {
         console.log(msg);
     });
 }
@@ -153,9 +152,9 @@ function connectSocket() {
 
 function createPlayer() {
     var id = 'player' + 0;
-    var x = 5;
-    var y = 15;
-    var z = 15;
+    var x = player_start_position.x;
+    var y = player_start_position.y;
+    var z = player_start_position.z;
     player_size = 3;
     var pass_idx = 999;
     var direction = '';
@@ -824,7 +823,7 @@ function displaySVG(parts_list) {
 function displayAFRAME(parts_list) {
     $('#vr_meiro').empty();
     var str = "";
-    str += '<a-scene id="a_meiro" embedded physics="debug: true;friction: 0.1;gravity:-9.8; restitution: 0.01">';
+    str += '<a-scene id="a_meiro" embedded physics="debug: true;friction: 0.1;gravity:-19.6; restitution: 0.01">';
     str += '<a-entity light="color: #FFF; intensity: 1.5" position="' + light_position.x + ' ' + light_position.y + ' ' + light_position.z + '"></a-entity>';
     str += '<a-entity id="a_camera" position="' + camera_position.x + ' ' + camera_position.y + ' ' + camera_position.z + '" rotation="' + camera_rotation.x + ' ' + camera_rotation.y + ' ' + camera_rotation.z + '">';
     str += '<a-camera><a-cursor></a-cursor></a-camera>';
@@ -832,7 +831,7 @@ function displayAFRAME(parts_list) {
     str += '<a-entity id="a_board" rotation="' + bord_rotation.x + ' ' + bord_rotation.y + ' ' + bord_rotation.z + '">';
     // str += '<a-entity id="a_all">';
     str += '<a-sky color="#DDDDDD"></a-sky>';
-    str += '<a-entity id="a_board" rotation="' + bord_rotation.x + ' ' + bord_rotation.y + ' ' + bord_rotation.z + '">';
+    str += '<a-entity id="a_board" position="' + bord_position.x + ' ' + bord_position.y + ' ' + bord_position.z + ' ' + '" rotation="' + bord_rotation.x + ' ' + bord_rotation.y + ' ' + bord_rotation.z + '">';
     // str += '<a-box static-body width= ' + CANVAS_SIZE + ' height= ' + CANVAS_SIZE + ' depth= 1' + ' position="' + (CANVAS_SIZE / 2) + ' ' + (CANVAS_SIZE / 2) * -1 +  ' ' + '-0.5' + ' color="white" transparent="true" opacity=1></a-box>';
     str += '<a-box static-body width= ' + CANVAS_SIZE + ' height=2 ' + 'depth=' + CANVAS_SIZE + ' position="' + (CANVAS_SIZE / 2) + ' 0 ' + (CANVAS_SIZE / 2) + ' color="white" ></a-box>';
     for (var i = 0; i < parts_list.length; i++) {
