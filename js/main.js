@@ -794,6 +794,7 @@ function displayAFRAME(parts_list) {
     str += '<a-entity id="a_camera" position="' + camera_position.x + ' ' + camera_position.y + ' ' + camera_position.z + '" rotation="' + camera_rotation.x + ' ' + camera_rotation.y + ' ' + camera_rotation.z + '">';
     str += '<a-camera><a-cursor></a-cursor></a-camera>';
     str += '</a-entity>';
+    str += '<a-obj-model id="dragon" position="0 30 0" src="img/BlueEyes/BlueEyes.obj" mtl="img/BlueEyes/BlueEyes.mtl"></a-obj-model>';
     str += '<a-entity light="color: #FFF; intensity: 1.5" position="75 150 0"></a-entity>';
 
     for (var i = 0; i < parts_list.length; i++) {
@@ -805,6 +806,7 @@ function displayAFRAME(parts_list) {
     // str += '<a-sphere id="sphere" color="#C0C0C0" radius="3" position="13 2 16" ></a-sphere>';
     str += '</a-scene>';
     $('#vr_meiro').append(str);
+    run();
 }
 
 function getdoubleDigestNumer(number) {
@@ -988,5 +990,13 @@ class Player {
     }
     get root() {
         return this._root;
+    }
+}
+
+function run() {
+    if (document.getElementById("dragon").object3D.children[0]) {
+        document.getElementById("dragon").object3D.children[0].children[0].material[1].transparent = true;
+    } else {
+        setTimeout(run, 500);
     }
 }

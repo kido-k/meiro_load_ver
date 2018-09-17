@@ -298,7 +298,9 @@ function addAframeElement(id, x, y, z, radius, color) {
     str += 'material="color:' + color + ';"';
     str += 'position="' + x + ' ' + y + ' ' + z + '"';
     str += '></a-entity>';
+    str += '<a-obj-model static-body id="dragon" position="0 30 0" src="img/BlueEyes/BlueEyes.obj" mtl="img/BlueEyes/BlueEyes.mtl"></a-obj-model>';
     $('#a_meiro').append(str);
+    run();
 }
 
 function moveCamera_btn(btn) {
@@ -833,7 +835,7 @@ function displayAFRAME(parts_list) {
     str += '<a-sky color="#DDDDDD"></a-sky>';
     str += '<a-entity id="a_board" position="' + bord_position.x + ' ' + bord_position.y + ' ' + bord_position.z + ' ' + '" rotation="' + bord_rotation.x + ' ' + bord_rotation.y + ' ' + bord_rotation.z + '">';
     // str += '<a-box static-body width= ' + CANVAS_SIZE + ' height= ' + CANVAS_SIZE + ' depth= 1' + ' position="' + (CANVAS_SIZE / 2) + ' ' + (CANVAS_SIZE / 2) * -1 +  ' ' + '-0.5' + ' color="white" transparent="true" opacity=1></a-box>';
-    str += '<a-box static-body width= ' + CANVAS_SIZE + ' height=2 ' + 'depth=' + CANVAS_SIZE + ' position="' + (CANVAS_SIZE / 2) + ' 0 ' + (CANVAS_SIZE / 2) + ' color="white" ></a-box>';
+    str += '<a-box static-body width= ' + CANVAS_SIZE + ' height=10 ' + 'depth=' + CANVAS_SIZE + ' position="' + (CANVAS_SIZE / 2) + ' -5 ' + (CANVAS_SIZE / 2) + ' color="white" ></a-box>';
     for (var i = 0; i < parts_list.length; i++) {
         var parts = parts_list[i];
         if (parts.type === 'wall') {
@@ -1028,5 +1030,13 @@ class Player {
     }
     get root() {
         return this._root;
+    }
+}
+
+function run() {
+    if (document.getElementById("dragon").object3D.children[0]) {
+        document.getElementById("dragon").object3D.children[0].children[0].material[1].transparent = true;
+    } else {
+        setTimeout(run, 500);
     }
 }
