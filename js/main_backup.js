@@ -1,7 +1,7 @@
 
 
 const EXECUTION_INTERVAL = 10;
-const CANVAS_SIZE = 200;
+const CANVAS_SIZE = 80;
 const THRESHHOLD = 150;
 const PLAYSER_SIZE_HOSEI = 1;
 const CHECK_DISTANCE = 3;

@@ -1,8 +1,8 @@
 
 
 const EXECUTION_INTERVAL = 10;
-const CANVAS_SIZE = 80;
-const THRESHHOLD = 100;
+const CANVAS_SIZE = 100;
+const THRESHHOLD = 130;
 const PLAYSER_SIZE_HOSEI = 1;
 const CHECK_DISTANCE = 3;
 
@@ -998,4 +998,5 @@ function snapshot() {
     size = CANVAS_SIZE;
     map = red;
     console.log(map);
-    displayLoad(size, map, player)}
+    displayLoad(size, map, player)
+}

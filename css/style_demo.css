@@ -1,61 +1,42 @@
 .w {
-    background-color: blue;
-    /* width: 10px;
-    height: 10px;
-    padding: 0; */
-    width: 1%;
+    background-color: black;
     height: 0;
     padding: 1%;
     margin: 0;
-    /* float: left; */
+    border-color: white;
+    border-style:solid;
+    border-width:thin;
 }
 
 .p {
     background-color: white;
-    /* width: 10px;
-    height: 10px;
-    padding: 0; */
-    width: 1%;
     height: 0;
     padding: 1%;
     margin: 0;
-    /* float: left; */
+    border-color: yellow;
+    border-style:solid;
+    border-width:thin;
 }
 
 .s {
-    background-color: rgb(255, 229, 81);
-    /* width: 10px;
-    height: 10px;
-    padding: 0; */
-    width: 1%;
+    background-color: blue;
     height: 0;
     padding: 1%;
     margin: 0;
-    /* float: left; */
 }
 
 .e {
     background-color: red;
-    /* width: 10px;
-    height: 10px;
-    padding: 0; */
-    width: 1%;
     height: 0;
     padding: 1%;
     margin: 0;
-    /* float: left; */
 }
 
 .z {
     background-color: rgb(0, 0, 0);
-    /* width: 10px;
-    height: 10px;
-    padding: 0; */
-    /* width: 1%; */
     height: 0;
     padding: 1%;
     margin: 0;
-    /* float: left; */
 }
 
 .msg{
