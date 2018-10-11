@@ -12,9 +12,7 @@ const PLAYER_MOVE_UNIT = 5;
 const PLAYER_SPEED = 1;
 
 var image;
-// var player = {};
 var map = [];
-// var size = 0;
 var position = {};
 var start = [];
 var end = [];
@@ -27,6 +25,7 @@ var first_play = true;
 var player_num = 0;
 var player_size = 3;
 const goal = { x: CANVAS_SIZE * 0.99 }
+const demo = false;
 
 $(function () {
     var display = true;
@@ -503,7 +502,7 @@ function makePartsList(map) {
     var parts = { x: 0, y: 0, width: 1, height: 0, type: '' }
     const parts_list = [];
 
-    // console.log(map);
+    console.log(map);
     for (var y = 0; y < map.length; y++) {
         parts = { x: 0, y: y, width: 1, height: 1, type: '' }
         const map_x = map[y];
@@ -552,8 +551,11 @@ function makePartsList(map) {
         }
     }
 
+
     // console.log(parts_list);
-    // return parts_list;
+    if (demo) {
+        return parts_list;
+    }
 
     //キャラの通り道を作成
 
@@ -776,9 +778,9 @@ function displaySVG(parts_list) {
     for (var i = 0; i < parts_list.length; i++) {
         var parts = parts_list[i];
         if (parts.type !== 'pass') {
-            str += '<rect x=' + parts.x * MAGNIFICATION + ' y=' + parts.y * MAGNIFICATION + ' width=' + parts.width * MAGNIFICATION + ' height=' + parts.height * MAGNIFICATION + ' fill="blue"></rect>';
+            str += '<rect x=' + parts.x * MAGNIFICATION + ' y=' + parts.y * MAGNIFICATION + ' width=' + parts.width * MAGNIFICATION + ' height=' + parts.height * MAGNIFICATION + ' fill="black" stroke="yellow" stroke-width="2px"></rect>';
         } else {
-            str += '<rect x=' + parts.x * MAGNIFICATION + ' y=' + parts.y * MAGNIFICATION + ' width=' + parts.width * MAGNIFICATION + ' height=' + parts.height * MAGNIFICATION + ' fill="orange"></rect>';
+            // str += '<rect x=' + parts.x * MAGNIFICATION + ' y=' + parts.y * MAGNIFICATION + ' width=' + parts.width * MAGNIFICATION + ' height=' + parts.height * MAGNIFICATION + ' fill="white"></rect>';
         }
     }
     str += '</svg>';
@@ -790,23 +792,23 @@ function displayAFRAME(parts_list) {
     var str = "";
     str += '<a-scene id="a_meiro" embedded>';
     str += '<a-sky color="#DDDDDD"></a-sky>';
-    str += '<a-box width= ' + CANVAS_SIZE + ' height=2 ' + 'depth=' + CANVAS_SIZE + ' position="' + (CANVAS_SIZE / 2) + ' 0 ' + (CANVAS_SIZE / 2) + ' color="white" ></a-box>';
+    str += '<a-box width= ' + CANVAS_SIZE + ' height=2 ' + 'depth=' + CANVAS_SIZE + ' position="' + (CANVAS_SIZE / 2) + ' -1 ' + (CANVAS_SIZE / 2) + '" color="gray" ></a-box>';
     str += '<a-entity id="a_camera" position="' + camera_position.x + ' ' + camera_position.y + ' ' + camera_position.z + '" rotation="' + camera_rotation.x + ' ' + camera_rotation.y + ' ' + camera_rotation.z + '">';
     str += '<a-camera><a-cursor></a-cursor></a-camera>';
     str += '</a-entity>';
-    str += '<a-obj-model id="dragon" position="0 30 0" src="img/BlueEyes/BlueEyes.obj" mtl="img/BlueEyes/BlueEyes.mtl"></a-obj-model>';
+    // str += '<a-obj-model id="dragon" position="0 30 0" src="img/BlueEyes/BlueEyes.obj" mtl="img/BlueEyes/BlueEyes.mtl"></a-obj-model>';
     str += '<a-entity light="color: #FFF; intensity: 1.5" position="75 150 0"></a-entity>';
 
     for (var i = 0; i < parts_list.length; i++) {
         var parts = parts_list[i];
         if (parts.type === 'wall') {
-            str += '<a-box id="box' + i + '" cursor-listener width= ' + parts.width + ' height="8"' + ' depth=' + parts.height + ' position="' + (parts.x + parts.width / 2) + ' 2 ' + (parts.y + parts.height / 2) + '" color="blue"></a-box>';
+            str += '<a-box id="box' + i + '" cursor-listener width= ' + parts.width + ' height="10"' + ' depth=' + parts.height + ' position="' + (parts.x + parts.width / 2) + ' 2 ' + (parts.y + parts.height / 2) + '" color="black"  stroke="yellow" stroke-width="2px"></a-box>';
         }
     }
     // str += '<a-sphere id="sphere" color="#C0C0C0" radius="3" position="13 2 16" ></a-sphere>';
     str += '</a-scene>';
     $('#vr_meiro').append(str);
-    run();
+    // run();
 }
 
 function getdoubleDigestNumer(number) {
